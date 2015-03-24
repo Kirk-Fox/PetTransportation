@@ -54,7 +54,7 @@ public class EggHit implements Listener {
 
                 try {
                     storage.savePet(event.getEntity(), storageID);
-                } catch (InvalidArgumentException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 

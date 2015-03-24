@@ -28,7 +28,7 @@ public class DataStorage {
         return config;
     }
 
-    public void savePet(Entity entity, UUID uuid) throws InvalidArgumentException {
+    public void savePet(Entity entity, UUID uuid) throws Exception {
         //Saves entity, throws an InvalidArgumentException when the entity specified is not an Ocelot or a Wolf.
         if (entity instanceof Ocelot || entity instanceof Wolf) {
             //If it is a cat, go to saveCat(), otherwise it must be a dog, so go to saveDog().
@@ -40,7 +40,7 @@ public class DataStorage {
                 saveDog(pet, uuid);
             }
         } else {
-            throw new InvalidArgumentException(new String[]{"The entity specified was neither a wolf, nor was it an ocelot."});
+            throw new Exception("The entity specified was neither a wolf, nor was it an ocelot.");
         }
     }
 
@@ -90,7 +90,7 @@ public class DataStorage {
         config.set("pets." + uuidString + ".health", catHealth);
     }
 
-    public void restorePet(Entity entity, UUID uuid) throws InvalidArgumentException {
+    public void restorePet(Entity entity, UUID uuid) throws Exception {
         //Make sure entity is an Ocelot or a Wolf, if it isn't, throw an InvalidArgumentException.
         if (entity instanceof Ocelot || entity instanceof Wolf) {
             //If entity is a cat, then pass it on to restoreCat(), otherwise it must be a dog, so pass it on to restoreDog().
@@ -102,7 +102,7 @@ public class DataStorage {
                 restoreDog(pet, uuid);
             }
         } else {
-            throw new InvalidArgumentException(new String[]{"The entity specified was neither a wolf, nor was it an ocelot."});
+            throw new Exception("The entity specified was neither a wolf, nor was it an ocelot.");
         }
     }
 
