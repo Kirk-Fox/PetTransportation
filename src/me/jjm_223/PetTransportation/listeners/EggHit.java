@@ -19,6 +19,7 @@ import java.util.UUID;
  * Listens for an egg hit.
  */
 
+@SuppressWarnings("unused")
 public class EggHit implements Listener {
     @EventHandler
     public void onEgg(EntityDamageByEntityEvent event) {
