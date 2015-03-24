@@ -28,7 +28,7 @@ public class DataStorage {
         return config;
     }
 
-    void savePet(Entity entity, UUID uuid) throws InvalidArgumentException {
+    public void savePet(Entity entity, UUID uuid) throws InvalidArgumentException {
         //Saves entity, throws an InvalidArgumentException when the entity specified is not an Ocelot or a Wolf.
         if (entity instanceof Ocelot || entity instanceof Wolf) {
             //If it is a cat, go to saveCat(), otherwise it must be a dog, so go to saveDog().
@@ -90,7 +90,7 @@ public class DataStorage {
         config.set("pets." + uuidString + ".health", catHealth);
     }
 
-    void restorePet(Entity entity, UUID uuid) throws InvalidArgumentException {
+    public void restorePet(Entity entity, UUID uuid) throws InvalidArgumentException {
         //Make sure entity is an Ocelot or a Wolf, if it isn't, throw an InvalidArgumentException.
         if (entity instanceof Ocelot || entity instanceof Wolf) {
             //If entity is a cat, then pass it on to restoreCat(), otherwise it must be a dog, so pass it on to restoreDog().

@@ -1,5 +1,6 @@
 package me.jjm_223.PetTransportation;
 
+import me.jjm_223.PetTransportation.listeners.EggHit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -11,9 +12,10 @@ public class PTMain extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        saveDefaultConfig();
+
         PluginManager pm = getServer().getPluginManager();
-
-
+        pm.registerEvents(new EggHit(), this);
     }
 
 }
