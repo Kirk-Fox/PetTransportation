@@ -2,6 +2,7 @@ package me.jjm_223.PetTransportation;
 
 import me.jjm_223.PetTransportation.listeners.EggClick;
 import me.jjm_223.PetTransportation.listeners.EggHit;
+import me.jjm_223.PetTransportation.listeners.ItemDespawn;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -18,6 +19,7 @@ public class PTMain extends JavaPlugin {
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(new EggHit(), this);
         pm.registerEvents(new EggClick(), this);
+        pm.registerEvents(new ItemDespawn(), this);
     }
 
     @Override

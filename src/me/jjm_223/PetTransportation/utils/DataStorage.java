@@ -130,8 +130,7 @@ public class DataStorage {
         wolf.setAge(age);
         wolf.setHealth(wolfHealth);
 
-        config.set("pets." + uuidString, null);
-        PTMain.getPlugin(PTMain.class).saveConfig();
+        configClean(uuidString);
     }
 
     private void restoreCat(Ocelot ocelot, UUID uuid) {
@@ -155,7 +154,13 @@ public class DataStorage {
         ocelot.setAge(age);
         ocelot.setHealth(catHealth);
 
-        config.set("pets." + uuidString, null);
-        PTMain.getPlugin(PTMain.class).saveConfig();
+        configClean(uuidString);
+    }
+
+    public void configClean(String uuid) {
+        if (config.contains("pets." + uuid)) {
+            config.set("pets." + uuid, null);
+            PTMain.getPlugin(PTMain.class).saveConfig();
+        }
     }
 }
