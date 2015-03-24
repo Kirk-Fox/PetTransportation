@@ -18,4 +18,9 @@ public class PTMain extends JavaPlugin {
         pm.registerEvents(new EggHit(), this);
     }
 
+    @Override
+    public void onDisable() {
+        saveConfig();
+    }
+
 }

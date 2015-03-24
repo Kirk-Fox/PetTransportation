@@ -1,6 +1,7 @@
 package me.jjm_223.PetTransportation.utils;
 
 import com.sun.javaws.exceptions.InvalidArgumentException;
+import me.jjm_223.PetTransportation.PTMain;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
@@ -66,6 +67,7 @@ public class DataStorage {
         config.set("pets." + uuidString + ".age", age);
         config.set("pets." + uuidString + ".health", wolfHealth);
 
+        PTMain.getPlugin(PTMain.class).saveConfig();
     }
 
     private void saveCat(Ocelot ocelot, UUID uuid) {
@@ -88,6 +90,8 @@ public class DataStorage {
         config.set("pets." + uuidString + ".isSitting", isSitting);
         config.set("pets." + uuidString + ".age", age);
         config.set("pets." + uuidString + ".health", catHealth);
+
+        PTMain.getPlugin(PTMain.class).saveConfig();
     }
 
     public void restorePet(Entity entity, UUID uuid) throws Exception {
