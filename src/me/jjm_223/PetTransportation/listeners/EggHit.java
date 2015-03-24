@@ -42,7 +42,7 @@ public class EggHit implements Listener {
                 ItemStack item = new ItemStack(Material.MONSTER_EGG, 1, event.getEntity().getType() == EntityType.OCELOT ? (short) 98 : (short) 95);
 
                 List<String> lore = new ArrayList<String>();
-                lore.add(event.getEntity().getCustomName() != null ? ChatColor.ITALIC + event.getEntity().getCustomName() : event.getEntity().getType() == EntityType.OCELOT ? ChatColor.ITALIC + "Dog" : ChatColor.ITALIC + "Cat");
+                lore.add(event.getEntity().getCustomName() != null ? ChatColor.ITALIC + event.getEntity().getCustomName() : event.getEntity().getType() == EntityType.OCELOT ? ChatColor.ITALIC + "Cat" : ChatColor.ITALIC + "Dog");
                 lore.add(storageID.toString());
                 ItemMeta meta = item.getItemMeta();
                 meta.setLore(lore);
