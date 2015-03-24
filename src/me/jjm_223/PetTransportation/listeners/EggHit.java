@@ -27,7 +27,8 @@ public class EggHit implements Listener {
         if (event.getDamager() instanceof Projectile
                 && event.getDamager().getType() == EntityType.EGG
                 && ((Projectile) event.getDamager()).getShooter() instanceof Player
-                && event.getEntity() instanceof Tameable) {
+                && event.getEntity() instanceof Tameable
+                && ((Tameable) event.getEntity()).getOwner() != null) {
 
             Player player = (Player) ((Projectile) event.getDamager()).getShooter();
 
@@ -39,7 +40,7 @@ public class EggHit implements Listener {
                 DataStorage storage = new DataStorage(PTMain.getPlugin(PTMain.class).getConfig());
                 UUID storageID = UUID.randomUUID();
 
-                Item droppedItemEntity = (Item) player.getWorld().spawnEntity(event.getEntity().getLocation(), EntityType.DROPPED_ITEM);
+
 
                 ItemStack item = new ItemStack(Material.MONSTER_EGG, 1, event.getEntity().getType() == EntityType.OCELOT ? (short) 98 : (short) 95);
 
@@ -50,7 +51,7 @@ public class EggHit implements Listener {
                 meta.setLore(lore);
                 item.setItemMeta(meta);
 
-                droppedItemEntity.setItemStack(item);
+                player.getWorld().dropItemNaturally(event.getEntity().getLocation(), item);
 
                 try {
                     storage.savePet(event.getEntity(), storageID);
