@@ -1,6 +1,5 @@
 package me.jjm_223.PetTransportation.listeners;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import me.jjm_223.PetTransportation.PTMain;
 import me.jjm_223.PetTransportation.utils.DataStorage;
 import org.bukkit.ChatColor;
@@ -40,18 +39,18 @@ public class EggHit implements Listener {
                 DataStorage storage = new DataStorage(PTMain.getPlugin(PTMain.class).getConfig());
                 UUID storageID = UUID.randomUUID();
 
-
-
                 ItemStack item = new ItemStack(Material.MONSTER_EGG, 1, event.getEntity().getType() == EntityType.OCELOT ? (short) 98 : (short) 95);
 
                 List<String> lore = new ArrayList<String>();
+                lore.add(event.getEntity().getCustomName() != null ? ChatColor.ITALIC + event.getEntity().getCustomName() : event.getEntity().getType() == EntityType.OCELOT ? ChatColor.ITALIC + "Wolf" : ChatColor.ITALIC + "Cat");
                 lore.add(storageID.toString());
-                lore.add(ChatColor.ITALIC + event.getEntity().getCustomName());
                 ItemMeta meta = item.getItemMeta();
                 meta.setLore(lore);
                 item.setItemMeta(meta);
 
                 player.getWorld().dropItemNaturally(event.getEntity().getLocation(), item);
+
+                event.getEntity().remove();
 
                 try {
                     storage.savePet(event.getEntity(), storageID);
