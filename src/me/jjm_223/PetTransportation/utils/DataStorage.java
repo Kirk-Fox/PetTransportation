@@ -23,6 +23,11 @@ public class DataStorage {
         this.config = config;
     }
 
+    //Returns the configuration above. Eh, I might need it.
+    FileConfiguration getConfig() {
+        return config;
+    }
+
     void savePet(Entity entity, UUID uuid) throws InvalidArgumentException {
         //Saves entity, throws an InvalidArgumentException when the entity specified is not an Ocelot or a Wolf.
         if (entity instanceof Ocelot || entity instanceof Wolf) {
@@ -37,11 +42,6 @@ public class DataStorage {
         } else {
             throw new InvalidArgumentException(new String[]{"The entity specified was neither a wolf, nor was it an ocelot."});
         }
-    }
-
-    //Returns the configuration above. Eh, I might need it.
-    FileConfiguration getConfig() {
-        return config;
     }
 
     //Saves a wolf entity
