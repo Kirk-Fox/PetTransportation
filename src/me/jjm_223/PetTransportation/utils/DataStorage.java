@@ -129,6 +129,9 @@ public class DataStorage {
         wolf.setSitting(isSitting);
         wolf.setAge(age);
         wolf.setHealth(wolfHealth);
+
+        config.set("pets." + uuidString, null);
+        PTMain.getPlugin(PTMain.class).saveConfig();
     }
 
     private void restoreCat(Ocelot ocelot, UUID uuid) {
@@ -151,5 +154,8 @@ public class DataStorage {
         ocelot.setSitting(isSitting);
         ocelot.setAge(age);
         ocelot.setHealth(catHealth);
+
+        config.set("pets." + uuidString, null);
+        PTMain.getPlugin(PTMain.class).saveConfig();
     }
 }
