@@ -7,6 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.ItemDespawnEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 
 /**
  * Helps config cleanup by keeping track of despawns and removals.
@@ -38,6 +39,17 @@ public class ItemDespawn implements Listener {
                 if (item.getItemStack().getItemMeta().getLore().size() == 2) {
                     storage.configClean(item.getItemStack().getItemMeta().getLore().get(1));
                 }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onInventoryDestroy(InventoryMoveItemEvent e) {
+        //If the destination is null... (Being destroyed in creative inventory.)
+        if (e.getDestination() == null) {
+            //Make sure item is indeed of the spawn egg persuasion, then remove it from the config.
+            if (e.getItem().getItemMeta().getLore().size() == 2) {
+                storage.configClean(e.getItem().getItemMeta().getLore().get(1));
             }
         }
     }
