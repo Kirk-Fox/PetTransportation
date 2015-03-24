@@ -157,9 +157,13 @@ public class DataStorage {
         configClean(uuidString);
     }
 
+    //Removes specified UUID from config. Used to keep the file small if possible.
     public void configClean(String uuid) {
+        //Make sure the config has the UUID in it. This may not be necessary, but it is precautionary.
         if (config.contains("pets." + uuid)) {
+            //Nulls the section (thereby deleting the values).
             config.set("pets." + uuid, null);
+            //Saves config for safety.
             PTMain.getPlugin(PTMain.class).saveConfig();
         }
     }

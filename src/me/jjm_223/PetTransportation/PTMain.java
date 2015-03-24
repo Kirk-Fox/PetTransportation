@@ -14,8 +14,10 @@ public class PTMain extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        //Save the default config file.
         saveDefaultConfig();
 
+        //Register relevant events.
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(new EggHit(), this);
         pm.registerEvents(new EggClick(), this);
@@ -24,6 +26,7 @@ public class PTMain extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        //Save the config on disable.
         saveConfig();
     }
 
