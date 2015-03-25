@@ -74,7 +74,7 @@ public class EggHit implements Listener {
                 }
             //If the pet that was supposed to be captured was not owned by the egg thrower (and they don't have bypass perms), tell them off.
             } else {
-                player.sendMessage(ChatColor.RED + "You can't capture that pet. It isn't yours!");
+                player.sendMessage(ChatColor.RED + "You can't capture that pet. It isn't yours! (Or you don't have permission)");
             }
         }
     }
