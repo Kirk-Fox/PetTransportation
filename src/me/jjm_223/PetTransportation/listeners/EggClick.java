@@ -59,7 +59,7 @@ public class EggClick implements Listener {
                                 //If the target location is of block air, then spawn the block at the target location. Otherwise, spawn it where the player is standing.
                                 entity = event.getPlayer().getWorld().spawnEntity(new Location(event.getClickedBlock().getWorld(), x , y, z).getBlock().getType() == Material.AIR ? new Location(event.getClickedBlock().getWorld(), x , y, z) : event.getPlayer().getLocation(), EntityType.OCELOT);
                             } else {
-                                entity = event.getPlayer().getWorld().spawnEntity(new Location(event.getClickedBlock().getWorld(), x , y, z).getBlock().getType() == Material.AIR ? new Location(event.getClickedBlock().getWorld(), x , y, z) : event.getPlayer().getLocation(), EntityType.WOLF);
+                                entity = event.getPlayer().getWorld().spawnEntity(new Location(event.getClickedBlock().getWorld(), x , y, z).getBlock().getType() == Material.AIR ? new Location(event.getClickedBlock().getWorld(), x, y, z) : event.getPlayer().getLocation(), EntityType.WOLF);
                             }
 
                             //Remove egg from hand. (This isn't a cloning plugin, after all.)
