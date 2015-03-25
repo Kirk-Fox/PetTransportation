@@ -57,9 +57,9 @@ public class EggClick implements Listener {
                             //If the item is an Ocelot spawn egg, spawn an ocelot. Otherwise spawn a wolf, as that is the only other option.
                             if (event.getItem().getData().getData() == (byte) 98) {
                                 //If the target location is of block air, then spawn the block at the target location. Otherwise, spawn it where the player is standing.
-                                entity = event.getPlayer().getWorld().spawnEntity(new Location(event.getClickedBlock().getWorld(), x , y, z).getBlock().getType() == Material.AIR ? new Location(event.getClickedBlock().getWorld(), x , y, z) : event.getPlayer().getLocation(), EntityType.OCELOT);
+                                entity = event.getPlayer().getWorld().spawnEntity(new Location(event.getClickedBlock().getWorld(), x, y, z).getBlock().getType() == Material.AIR ? new Location(event.getClickedBlock().getWorld(), x, y, z) : event.getPlayer().getLocation(), EntityType.OCELOT);
                             } else {
-                                entity = event.getPlayer().getWorld().spawnEntity(new Location(event.getClickedBlock().getWorld(), x , y, z).getBlock().getType() == Material.AIR ? new Location(event.getClickedBlock().getWorld(), x, y, z) : event.getPlayer().getLocation(), EntityType.WOLF);
+                                entity = event.getPlayer().getWorld().spawnEntity(new Location(event.getClickedBlock().getWorld(), x, y, z).getBlock().getType() == Material.AIR ? new Location(event.getClickedBlock().getWorld(), x, y, z) : event.getPlayer().getLocation(), EntityType.WOLF);
                             }
 
                             //Remove egg from hand. (This isn't a cloning plugin, after all.)

@@ -1,6 +1,5 @@
 package me.jjm_223.PetTransportation.utils;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import me.jjm_223.PetTransportation.PTMain;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -22,11 +21,6 @@ public class DataStorage {
     public DataStorage(FileConfiguration config) {
         //Sets config for this instance
         this.config = config;
-    }
-
-    //Returns the configuration above. Eh, I might need it.
-    FileConfiguration getConfig() {
-        return config;
     }
 
     public void savePet(Entity entity, UUID uuid) throws Exception {
