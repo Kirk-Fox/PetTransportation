@@ -123,6 +123,7 @@ public class DataStorage {
         wolf.setSitting(isSitting);
         wolf.setAge(age);
         wolf.setHealth(wolfHealth);
+        wolf.setRemoveWhenFarAway(false);
 
         configClean(uuidString);
     }
@@ -147,6 +148,7 @@ public class DataStorage {
         ocelot.setSitting(isSitting);
         ocelot.setAge(age);
         ocelot.setHealth(catHealth);
+        ocelot.setRemoveWhenFarAway(false);
 
         configClean(uuidString);
     }
