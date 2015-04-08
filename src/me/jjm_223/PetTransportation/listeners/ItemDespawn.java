@@ -36,7 +36,9 @@ public class ItemDespawn implements Listener {
             Item item = (Item) event.getEntity();
             if (item.getItemStack().getItemMeta().getLore() != null) {
                 if (item.getItemStack().getItemMeta().getLore().size() == 2) {
-                    storage.configClean(item.getItemStack().getItemMeta().getLore().get(1));
+                    if (item.getItemStack().getItemMeta().getLore().get(1).length() == 36) {
+                        storage.configClean(item.getItemStack().getItemMeta().getLore().get(1));
+                    }
                 }
             }
         }
