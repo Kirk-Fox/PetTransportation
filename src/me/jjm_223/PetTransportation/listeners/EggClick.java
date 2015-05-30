@@ -27,7 +27,7 @@ public class EggClick implements Listener {
         //Make sure the player is clicking with an item. (Prevents NPE)
         if (event.getItem() != null) {
             //Makes sure they are right clicking, that they have a monster egg in their hand, and that they have permission.
-            if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getItem().getType() == Material.MONSTER_EGG && event.getPlayer().hasPermission("pt.restore")) {
+            if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getItem().getType() == Material.MONSTER_EGG) {
                 //Makes sure the item is what we want.
                 if (event.getItem().getItemMeta().getLore() != null) {
                     if (event.getItem().getItemMeta().getLore().size() == 2) {
