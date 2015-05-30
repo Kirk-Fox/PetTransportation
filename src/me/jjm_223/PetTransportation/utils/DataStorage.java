@@ -6,6 +6,7 @@ import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Horse;
 import org.bukkit.entity.Ocelot;
 import org.bukkit.entity.Wolf;
 
@@ -25,14 +26,17 @@ public class DataStorage {
 
     public void savePet(Entity entity, UUID uuid) throws Exception {
         //Saves entity, throws an InvalidArgumentException when the entity specified is not an Ocelot or a Wolf.
-        if (entity instanceof Ocelot || entity instanceof Wolf) {
+        if (entity instanceof Ocelot || entity instanceof Wolf || entity instanceof Horse) {
             //If it is a cat, go to saveCat(), otherwise it must be a dog, so go to saveDog().
             if (entity instanceof Ocelot) {
                 Ocelot pet = (Ocelot) entity;
                 saveCat(pet, uuid);
-            } else {
+            } else if (entity instanceof Wolf){
                 Wolf pet = (Wolf) entity;
                 saveDog(pet, uuid);
+            } else {
+                Horse pet = (Horse) entity;
+                saveHorse(pet, uuid);
             }
         } else {
             throw new Exception("The entity specified was neither a wolf, nor was it an ocelot.");
@@ -88,16 +92,46 @@ public class DataStorage {
         PTMain.getPlugin(PTMain.class).saveConfig();
     }
 
+    private void saveHorse(Horse horse, UUID uuid) {
+        //Convert UUID to string for storage.
+        String uuidString = uuid.toString();
+
+        //Store horse info to variables.
+        String petName = horse.getCustomName();
+        String petOwnerUUID = horse.getOwner().getUniqueId().toString();
+        Horse.Color color = horse.getColor();
+        Horse.Style style = horse.getStyle();
+        Horse.Variant variant = horse.getVariant();
+        int age = horse.getAge();
+        double maxHealth = horse.getMaxHealth();
+        double health = horse.getHealth();
+
+        //Save horse info.
+        config.set("pets." + uuidString + ".petName", petName);
+        config.set("pets." + uuidString + ".petOwner", petOwnerUUID);
+        config.set("pets." + uuidString + ".color", color.toString());
+        config.set("pets." + uuidString + ".style", style.toString());
+        config.set("pets." + uuidString + ".variant", variant.toString());
+        config.set("pets." + uuidString + ".age", age);
+        config.set("pets." + uuidString + ".maxHealth", maxHealth);
+        config.set("pets." + uuidString + ".health", health);
+
+        PTMain.getPlugin(PTMain.class).saveConfig();
+    }
+
     public void restorePet(Entity entity, UUID uuid) throws Exception {
         //Make sure entity is an Ocelot or a Wolf, if it isn't, throw an InvalidArgumentException.
-        if (entity instanceof Ocelot || entity instanceof Wolf) {
+        if (entity instanceof Ocelot || entity instanceof Wolf || entity instanceof Horse) {
             //If entity is a cat, then pass it on to restoreCat(), otherwise it must be a dog, so pass it on to restoreDog().
             if (entity instanceof Ocelot) {
                 Ocelot pet = (Ocelot) entity;
                 restoreCat(pet, uuid);
-            } else {
+            } else if (entity instanceof Wolf){
                 Wolf pet = (Wolf) entity;
                 restoreDog(pet, uuid);
+            } else {
+                Horse pet = (Horse) entity;
+                restoreHorse(pet, uuid);
             }
         } else {
             throw new Exception("The entity specified was neither a wolf, nor was it an ocelot.");
@@ -149,6 +183,34 @@ public class DataStorage {
         ocelot.setAge(age);
         ocelot.setHealth(catHealth);
         ocelot.setRemoveWhenFarAway(false);
+
+        configClean(uuidString);
+    }
+
+    private void restoreHorse(Horse horse, UUID uuid) {
+        //Convert UUID to string for reading config.
+        String uuidString = uuid.toString();
+
+        //Get values from config.
+        String petName = config.getString("pets." + uuidString + ".petName");
+        UUID petOwnerUUID = UUID.fromString(config.getString("pets." + uuidString + ".petOwner"));
+        Horse.Color color = Horse.Color.valueOf(config.getString("pets." + uuidString + ".color"));
+        Horse.Style style = Horse.Style.valueOf(config.getString("pets." + uuidString + ".style"));
+        Horse.Variant variant = Horse.Variant.valueOf(config.getString("pets." + uuidString + ".variant"));
+        int age = config.getInt("pets." + uuidString + ".age");
+        double maxHealth = config.getDouble("pets." + uuidString + ".maxHealth");
+        double health = config.getDouble("pets." + uuidString + ".health");
+
+        //Set horse info.
+        horse.setCustomName(petName);
+        horse.setOwner(Bukkit.getOfflinePlayer(petOwnerUUID));
+        horse.setColor(color);
+        horse.setStyle(style);
+        horse.setVariant(variant);
+        horse.setAge(age);
+        horse.setMaxHealth(maxHealth);
+        horse.setHealth(health);
+        horse.setTamed(true);
 
         configClean(uuidString);
     }

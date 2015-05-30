@@ -28,7 +28,7 @@ public class EggHit implements Listener {
         if (event.getDamager() instanceof Projectile
                 && event.getDamager().getType() == EntityType.EGG
                 && ((Projectile) event.getDamager()).getShooter() instanceof Player
-                && (event.getEntity() instanceof Wolf || event.getEntity() instanceof Ocelot)
+                && (event.getEntity() instanceof Wolf || event.getEntity() instanceof Ocelot || event.getEntity() instanceof Horse)
                 && ((Tameable) event.getEntity()).getOwner() != null) {
 
             Player player = (Player) ((Projectile) event.getDamager()).getShooter();
@@ -44,13 +44,29 @@ public class EggHit implements Listener {
                 //Generate a random UUID to identify the pet in the config.
                 UUID storageID = UUID.randomUUID();
 
-                //Create a new itemstack. If the entity is an ocelot, give it a data value of 98, otherwise give it a data value of 95 (wolf).
-                ItemStack item = new ItemStack(Material.MONSTER_EGG, 1, event.getEntity().getType() == EntityType.OCELOT ? (short) 98 : (short) 95);
+                //Create a new itemstack. If the entity is an ocelot, give it a data value of 98, if it is a wolf give it a data value of 95 (wolf), otherwise give it a data value of 100 (horse).
+                byte type;
+                if (event.getEntityType() == EntityType.OCELOT) {
+                    type = 98;
+                } else if (event.getEntityType() == EntityType.WOLF) {
+                    type = 95;
+                } else {
+                    type = 100;
+                }
+                ItemStack item = new ItemStack(Material.MONSTER_EGG, 1, type);
 
                 //Create the lore.
                 List<String> lore = new ArrayList<String>();
-                //If the animal has a name, set the first line as the name. Otherwise if the animal is an ocelot, set the first line as "Cat". Otherwise set the first line as "Dog".
-                lore.add(event.getEntity().getCustomName() != null ? ChatColor.ITALIC + event.getEntity().getCustomName() : event.getEntity().getType() == EntityType.OCELOT ? ChatColor.ITALIC + "Cat" : ChatColor.ITALIC + "Dog");
+                //If the animal has a name, set the first line as the name. Otherwise if the animal is an ocelot, set the first line as "Cat". If it is a wolf, set the first line as "Dog". Otherwise set it to horse.
+                String animalName;
+                if (event.getEntityType() == EntityType.OCELOT) {
+                    animalName = "Cat";
+                } else if (event.getEntityType() == EntityType.WOLF) {
+                    animalName = "Dog";
+                } else {
+                    animalName = "Horse";
+                }
+                lore.add(event.getEntity().getCustomName() != null ? ChatColor.ITALIC + event.getEntity().getCustomName() : ChatColor.ITALIC + animalName);
                 //Add the UUID to the second line as identification when being respawned.
                 lore.add(storageID.toString());
                 //Get the metadata.
@@ -59,6 +75,16 @@ public class EggHit implements Listener {
                 meta.setLore(lore);
                 //Put the metadata back into the item.
                 item.setItemMeta(meta);
+
+                //Drop inventory contents of horse.
+                if (event.getEntityType() == EntityType.HORSE) {
+                    Horse horse = (Horse) event.getEntity();
+                    for (ItemStack inventoryItem : horse.getInventory().getContents()) {
+                        if (inventoryItem != null) {
+                            horse.getWorld().dropItemNaturally(horse.getLocation(), inventoryItem);
+                        }
+                    }
+                }
 
                 //Drop the spawn egg with the data where the pet is sitting/standing.
                 player.getWorld().dropItemNaturally(event.getEntity().getLocation(), item);

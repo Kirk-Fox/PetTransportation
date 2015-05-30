@@ -27,7 +27,7 @@ public class EggClick implements Listener {
         //Make sure the player is clicking with an item. (Prevents NPE)
         if (event.getItem() != null) {
             //Makes sure they are right clicking, that they have a monster egg in their hand, and that they have permission.
-            if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getItem().getType() == Material.MONSTER_EGG) {
+            if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getItem().getType() == Material.MONSTER_EGG && event.getPlayer().hasPermission("pt.restore")) {
                 //Makes sure the item is what we want.
                 if (event.getItem().getItemMeta().getLore() != null) {
                     if (event.getItem().getItemMeta().getLore().size() == 2) {
@@ -56,12 +56,14 @@ public class EggClick implements Listener {
 
                                 DataStorage dataStorage = new DataStorage(PTMain.getPlugin(PTMain.class).getConfig());
 
-                                //If the item is an Ocelot spawn egg, spawn an ocelot. Otherwise spawn a wolf, as that is the only other option.
+                                //If the item is an Ocelot spawn egg, spawn an ocelot. If it is a Wolf spawn egg, spawn a wolf. Otherwise, spawn a horse.
                                 if (event.getItem().getData().getData() == (byte) 98) {
                                     //If the target location is of block air, then spawn the block at the target location. Otherwise, spawn it where the player is standing.
                                     entity = event.getPlayer().getWorld().spawnEntity(new Location(event.getClickedBlock().getWorld(), x, y, z).getBlock().getType() == Material.AIR ? new Location(event.getClickedBlock().getWorld(), x, y, z) : event.getPlayer().getLocation(), EntityType.OCELOT);
-                                } else {
+                                } else if (event.getItem().getData().getData() == (byte) 95) {
                                     entity = event.getPlayer().getWorld().spawnEntity(new Location(event.getClickedBlock().getWorld(), x, y, z).getBlock().getType() == Material.AIR ? new Location(event.getClickedBlock().getWorld(), x, y, z) : event.getPlayer().getLocation(), EntityType.WOLF);
+                                } else {
+                                    entity = event.getPlayer().getWorld().spawnEntity(new Location(event.getClickedBlock().getWorld(), x, y, z).getBlock().getType() == Material.AIR ? new Location(event.getClickedBlock().getWorld(), x, y, z) : event.getPlayer().getLocation(), EntityType.HORSE);
                                 }
 
                                 //Remove egg from hand. (This isn't a cloning plugin, after all.)
