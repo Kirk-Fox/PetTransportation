@@ -211,6 +211,7 @@ public class DataStorage {
         horse.setMaxHealth(maxHealth);
         horse.setHealth(health);
         horse.setTamed(true);
+        horse.setRemoveWhenFarAway(false);
 
         configClean(uuidString);
     }
