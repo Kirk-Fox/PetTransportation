@@ -102,6 +102,9 @@ public class DataStorage {
         Horse.Color color = horse.getColor();
         Horse.Style style = horse.getStyle();
         Horse.Variant variant = horse.getVariant();
+        double jump = horse.getJumpStrength();
+        int domestication = horse.getDomestication();
+        int maxDomestication = horse.getMaxDomestication();
         int age = horse.getAge();
         double maxHealth = horse.getMaxHealth();
         double health = horse.getHealth();
@@ -112,6 +115,9 @@ public class DataStorage {
         config.set("pets." + uuidString + ".color", color.toString());
         config.set("pets." + uuidString + ".style", style.toString());
         config.set("pets." + uuidString + ".variant", variant.toString());
+        config.set("pets." + uuidString + ".jump", jump);
+        config.set("pets." + uuidString + ".domestication", domestication);
+        config.set("pets." + uuidString + ".maxDomestication", maxDomestication);
         config.set("pets." + uuidString + ".age", age);
         config.set("pets." + uuidString + ".maxHealth", maxHealth);
         config.set("pets." + uuidString + ".health", health);
@@ -168,7 +174,7 @@ public class DataStorage {
 
         //Get values from config.
         String petName = config.getString("pets." + uuidString + ".petName");
-        String breedString = config.getString("pets."+ uuidString + ".breed");
+        String breedString = config.getString("pets." + uuidString + ".breed");
         Ocelot.Type breed = Ocelot.Type.valueOf(breedString);
         UUID petOwnerUUID = UUID.fromString(config.getString("pets." + uuidString + ".petOwner"));
         boolean isSitting = config.getBoolean("pets." + uuidString + ".isSitting");
@@ -197,6 +203,9 @@ public class DataStorage {
         Horse.Color color = Horse.Color.valueOf(config.getString("pets." + uuidString + ".color"));
         Horse.Style style = Horse.Style.valueOf(config.getString("pets." + uuidString + ".style"));
         Horse.Variant variant = Horse.Variant.valueOf(config.getString("pets." + uuidString + ".variant"));
+        double jump = config.getDouble(config.getString("pets." + uuidString + ".jump"));
+        int domestication = config.getInt(config.getString("pets." + uuidString + ".domestication"));
+        int maxDomestication = config.getInt(config.getString("pets." + uuidString + ".maxDomestication"));
         int age = config.getInt("pets." + uuidString + ".age");
         double maxHealth = config.getDouble("pets." + uuidString + ".maxHealth");
         double health = config.getDouble("pets." + uuidString + ".health");
@@ -207,6 +216,9 @@ public class DataStorage {
         horse.setColor(color);
         horse.setStyle(style);
         horse.setVariant(variant);
+        horse.setJumpStrength(jump);
+        horse.setMaxDomestication(maxDomestication);
+        horse.setDomestication(domestication);
         horse.setAge(age);
         horse.setMaxHealth(maxHealth);
         horse.setHealth(health);
