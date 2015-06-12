@@ -1,10 +1,12 @@
 package me.jjm_223.PetTransportation.utils;
 
 import me.jjm_223.PetTransportation.PTMain;
+import net.minecraft.server.v1_8_R3.EntityHorse;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftHorse;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Ocelot;
@@ -103,8 +105,6 @@ public class DataStorage {
         Horse.Style style = horse.getStyle();
         Horse.Variant variant = horse.getVariant();
         double jump = horse.getJumpStrength();
-        int domestication = horse.getDomestication();
-        int maxDomestication = horse.getMaxDomestication();
         int age = horse.getAge();
         double maxHealth = horse.getMaxHealth();
         double health = horse.getHealth();
@@ -116,8 +116,6 @@ public class DataStorage {
         config.set("pets." + uuidString + ".style", style.toString());
         config.set("pets." + uuidString + ".variant", variant.toString());
         config.set("pets." + uuidString + ".jump", jump);
-        config.set("pets." + uuidString + ".domestication", domestication);
-        config.set("pets." + uuidString + ".maxDomestication", maxDomestication);
         config.set("pets." + uuidString + ".age", age);
         config.set("pets." + uuidString + ".maxHealth", maxHealth);
         config.set("pets." + uuidString + ".health", health);
@@ -203,9 +201,7 @@ public class DataStorage {
         Horse.Color color = Horse.Color.valueOf(config.getString("pets." + uuidString + ".color"));
         Horse.Style style = Horse.Style.valueOf(config.getString("pets." + uuidString + ".style"));
         Horse.Variant variant = Horse.Variant.valueOf(config.getString("pets." + uuidString + ".variant"));
-        double jump = config.getDouble(config.getString("pets." + uuidString + ".jump"));
-        int domestication = config.getInt(config.getString("pets." + uuidString + ".domestication"));
-        int maxDomestication = config.getInt(config.getString("pets." + uuidString + ".maxDomestication"));
+        double jump = config.getDouble("pets." + uuidString + ".jump");
         int age = config.getInt("pets." + uuidString + ".age");
         double maxHealth = config.getDouble("pets." + uuidString + ".maxHealth");
         double health = config.getDouble("pets." + uuidString + ".health");
@@ -217,8 +213,6 @@ public class DataStorage {
         horse.setStyle(style);
         horse.setVariant(variant);
         horse.setJumpStrength(jump);
-        horse.setMaxDomestication(maxDomestication);
-        horse.setDomestication(domestication);
         horse.setAge(age);
         horse.setMaxHealth(maxHealth);
         horse.setHealth(health);
