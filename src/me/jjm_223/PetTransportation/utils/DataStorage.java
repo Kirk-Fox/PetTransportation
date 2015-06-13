@@ -2,6 +2,8 @@ package me.jjm_223.PetTransportation.utils;
 
 import me.jjm_223.PetTransportation.PTMain;
 import net.minecraft.server.v1_8_R3.EntityHorse;
+import net.minecraft.server.v1_8_R3.GenericAttributes;
+import net.minecraft.server.v1_8_R3.IAttribute;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
@@ -108,6 +110,7 @@ public class DataStorage {
         int age = horse.getAge();
         double maxHealth = horse.getMaxHealth();
         double health = horse.getHealth();
+        double speed = getHorseSpeed(horse);
 
         //Save horse info.
         config.set("pets." + uuidString + ".petName", petName);
@@ -119,6 +122,7 @@ public class DataStorage {
         config.set("pets." + uuidString + ".age", age);
         config.set("pets." + uuidString + ".maxHealth", maxHealth);
         config.set("pets." + uuidString + ".health", health);
+        config.set("pets." + uuidString + ".speed", speed);
 
         PTMain.getPlugin(PTMain.class).saveConfig();
     }
@@ -205,6 +209,7 @@ public class DataStorage {
         int age = config.getInt("pets." + uuidString + ".age");
         double maxHealth = config.getDouble("pets." + uuidString + ".maxHealth");
         double health = config.getDouble("pets." + uuidString + ".health");
+        double speed = config.getDouble("pets." + uuidString + ".speed");
 
         //Set horse info.
         horse.setCustomName(petName);
@@ -218,6 +223,7 @@ public class DataStorage {
         horse.setHealth(health);
         horse.setTamed(true);
         horse.setRemoveWhenFarAway(false);
+        setHorseSpeed(horse, speed);
 
         configClean(uuidString);
     }
@@ -231,5 +237,17 @@ public class DataStorage {
             //Saves config for safety.
             PTMain.getPlugin(PTMain.class).saveConfig();
         }
+    }
+
+    //Get horse speed.
+    public double getHorseSpeed(Horse horse) {
+        EntityHorse nmsHorse = ((CraftHorse) horse).getHandle();
+        return nmsHorse.getAttributeInstance(GenericAttributes.MOVEMENT_SPEED).getValue();
+    }
+
+    //Set horse speed.
+    public void setHorseSpeed(Horse horse, double value) {
+        EntityHorse nmsHorse = ((CraftHorse) horse).getHandle();
+        nmsHorse.getAttributeInstance(GenericAttributes.MOVEMENT_SPEED).setValue(value);
     }
 }
