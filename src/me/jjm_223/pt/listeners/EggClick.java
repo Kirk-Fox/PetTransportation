@@ -1,7 +1,7 @@
-package me.jjm_223.PetTransportation.listeners;
+package me.jjm_223.pt.listeners;
 
-import me.jjm_223.PetTransportation.PTMain;
-import me.jjm_223.PetTransportation.utils.DataStorage;
+import me.jjm_223.pt.PetTransportation;
+import me.jjm_223.pt.utils.DataStorage;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.UUID;
 
@@ -21,6 +22,13 @@ import java.util.UUID;
 
 @SuppressWarnings({"unused", "deprecation"})
 public class EggClick implements Listener {
+
+    JavaPlugin plugin;
+
+    public EggClick(JavaPlugin plugin) {
+        this.plugin = plugin;
+    }
+
     //Respawns stored cat.
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
@@ -32,7 +40,7 @@ public class EggClick implements Listener {
                 if (event.getItem().getItemMeta().getLore() != null) {
                     if (event.getItem().getItemMeta().getLore().size() == 2) {
                         //Make double sure that the item is what we want. (Trying to be compatible with other plugins.)
-                        if (PTMain.getPlugin(PTMain.class).getConfig().contains("pets." + event.getItem().getItemMeta().getLore().get(1))) {
+                        if (DataStorage.config.contains("pets." + event.getItem().getItemMeta().getLore().get(1))) {
                             //Cancel event so the spawn egg doesn't spawn something we don't want.
                             event.setCancelled(true);
 
@@ -54,7 +62,7 @@ public class EggClick implements Listener {
                                 //Make sure entity is spawned in the middle of a block. (Prevents suffocation)
                                 z = z + ((int) Math.signum(x) * 0.5);
 
-                                DataStorage dataStorage = new DataStorage(PTMain.getPlugin(PTMain.class).getConfig());
+                                DataStorage dataStorage = new DataStorage(plugin);
 
                                 //If the item is an Ocelot spawn egg, spawn an ocelot. If it is a Wolf spawn egg, spawn a wolf. Otherwise, spawn a horse.
                                 if (event.getItem().getData().getData() == (byte) 98) {

@@ -1,7 +1,6 @@
-package me.jjm_223.PetTransportation.listeners;
+package me.jjm_223.pt.listeners;
 
-import me.jjm_223.PetTransportation.PTMain;
-import me.jjm_223.PetTransportation.utils.DataStorage;
+import me.jjm_223.pt.utils.DataStorage;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.*;
@@ -10,6 +9,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +21,13 @@ import java.util.UUID;
 
 @SuppressWarnings("unused")
 public class EggHit implements Listener {
+
+    private JavaPlugin plugin;
+
+    public EggHit(JavaPlugin plugin) {
+        this.plugin = plugin;
+    }
+
     //When an entity is damaged by another entity...
     @EventHandler
     public void onEgg(EntityDamageByEntityEvent event) {
@@ -40,7 +47,7 @@ public class EggHit implements Listener {
                 //Cancel the event, we don't want them to get hurt, do we? (I hope you didn't answer yes D:)
                 event.setCancelled(true);
 
-                DataStorage storage = new DataStorage(PTMain.getPlugin(PTMain.class).getConfig());
+                DataStorage storage = new DataStorage(plugin);
                 //Generate a random UUID to identify the pet in the config.
                 UUID storageID = UUID.randomUUID();
 

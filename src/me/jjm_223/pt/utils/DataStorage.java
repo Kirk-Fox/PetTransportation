@@ -1,19 +1,23 @@
-package me.jjm_223.PetTransportation.utils;
+package me.jjm_223.pt.utils;
 
-import me.jjm_223.PetTransportation.PTMain;
 import net.minecraft.server.v1_8_R3.EntityHorse;
 import net.minecraft.server.v1_8_R3.GenericAttributes;
-import net.minecraft.server.v1_8_R3.IAttribute;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftHorse;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Ocelot;
 import org.bukkit.entity.Wolf;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.UUID;
 
 /**
@@ -21,11 +25,50 @@ import java.util.UUID;
  */
 public class DataStorage {
 
-    private FileConfiguration config;
+    public static FileConfiguration config;
+    public static boolean hasLoaded;
+    public JavaPlugin plugin;
+    public static File save;
 
-    public DataStorage(FileConfiguration config) {
-        //Sets config for this instance
-        this.config = config;
+    public DataStorage(JavaPlugin plugin) {
+        if (!hasLoaded) {
+            config = new YamlConfiguration();
+            this.plugin = plugin;
+
+            save = new File(plugin.getDataFolder() + File.separator + "pets.yml");
+
+            if (!save.exists()) {
+                try {
+                    if (!save.getParentFile().exists()) {
+                        save.getParentFile().mkdir();
+                    }
+                    save.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return;
+                }
+            }
+
+            try {
+                config.load(save);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InvalidConfigurationException e) {
+                e.printStackTrace();
+            }
+
+            new BukkitRunnable() {
+                public void run() {
+                    try {
+                        config.save(save);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }.runTaskTimerAsynchronously(plugin, 0L, 200L);
+
+            hasLoaded = true;
+        }
     }
 
     public void savePet(Entity entity, UUID uuid) throws Exception {
@@ -68,8 +111,6 @@ public class DataStorage {
         config.set("pets." + uuidString + ".isSitting", isSitting);
         config.set("pets." + uuidString + ".age", age);
         config.set("pets." + uuidString + ".health", wolfHealth);
-
-        PTMain.getPlugin(PTMain.class).saveConfig();
     }
 
     private void saveCat(Ocelot ocelot, UUID uuid) {
@@ -92,8 +133,6 @@ public class DataStorage {
         config.set("pets." + uuidString + ".isSitting", isSitting);
         config.set("pets." + uuidString + ".age", age);
         config.set("pets." + uuidString + ".health", catHealth);
-
-        PTMain.getPlugin(PTMain.class).saveConfig();
     }
 
     private void saveHorse(Horse horse, UUID uuid) {
@@ -123,8 +162,6 @@ public class DataStorage {
         config.set("pets." + uuidString + ".maxHealth", maxHealth);
         config.set("pets." + uuidString + ".health", health);
         config.set("pets." + uuidString + ".speed", speed);
-
-        PTMain.getPlugin(PTMain.class).saveConfig();
     }
 
     public void restorePet(Entity entity, UUID uuid) throws Exception {
@@ -141,8 +178,9 @@ public class DataStorage {
                 Horse pet = (Horse) entity;
                 restoreHorse(pet, uuid);
             }
+            configClean(uuid.toString());
         } else {
-            throw new Exception("The entity specified was neither a wolf, nor was it an ocelot.");
+            throw new Exception("The entity specified was neither a wolf, horse, or ocelot.");
         }
     }
 
@@ -166,8 +204,6 @@ public class DataStorage {
         wolf.setAge(age);
         wolf.setHealth(wolfHealth);
         wolf.setRemoveWhenFarAway(false);
-
-        configClean(uuidString);
     }
 
     private void restoreCat(Ocelot ocelot, UUID uuid) {
@@ -191,8 +227,6 @@ public class DataStorage {
         ocelot.setAge(age);
         ocelot.setHealth(catHealth);
         ocelot.setRemoveWhenFarAway(false);
-
-        configClean(uuidString);
     }
 
     private void restoreHorse(Horse horse, UUID uuid) {
@@ -224,8 +258,6 @@ public class DataStorage {
         horse.setTamed(true);
         horse.setRemoveWhenFarAway(false);
         setHorseSpeed(horse, speed);
-
-        configClean(uuidString);
     }
 
     //Removes specified UUID from config. Used to keep the file small if possible.
@@ -234,8 +266,6 @@ public class DataStorage {
         if (config.contains("pets." + uuid)) {
             //Nulls the section (thereby deleting the values).
             config.set("pets." + uuid, null);
-            //Saves config for safety.
-            PTMain.getPlugin(PTMain.class).saveConfig();
         }
     }
 
