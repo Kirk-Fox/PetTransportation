@@ -72,7 +72,7 @@ public class DataStorage {
     }
 
     public void savePet(Entity entity, UUID uuid) throws Exception {
-        //Saves entity, throws an InvalidArgumentException when the entity specified is not an Ocelot or a Wolf.
+        //Saves entity, throws an InvalidArgumentException when the entity specified is not an Ocelot, Wolf, or Horse.
         if (entity instanceof Ocelot || entity instanceof Wolf || entity instanceof Horse) {
             //If it is a cat, go to saveCat(), otherwise it must be a dog, so go to saveDog().
             if (entity instanceof Ocelot) {
@@ -165,9 +165,8 @@ public class DataStorage {
     }
 
     public void restorePet(Entity entity, UUID uuid) throws Exception {
-        //Make sure entity is an Ocelot or a Wolf, if it isn't, throw an InvalidArgumentException.
+        //Make sure entity is an Ocelot, Wolf, or Horse if it isn't, throw an InvalidArgumentException.
         if (entity instanceof Ocelot || entity instanceof Wolf || entity instanceof Horse) {
-            //If entity is a cat, then pass it on to restoreCat(), otherwise it must be a dog, so pass it on to restoreDog().
             if (entity instanceof Ocelot) {
                 Ocelot pet = (Ocelot) entity;
                 restoreCat(pet, uuid);

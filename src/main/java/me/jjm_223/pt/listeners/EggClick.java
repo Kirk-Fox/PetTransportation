@@ -64,7 +64,7 @@ public class EggClick implements Listener {
 
                                 DataStorage dataStorage = new DataStorage(plugin);
 
-                                //If the item is an Ocelot spawn egg, spawn an ocelot. If it is a Wolf spawn egg, spawn a wolf. Otherwise, spawn a horse.
+                                //Spawn the appropriate entity.
                                 if (event.getItem().getData().getData() == (byte) 98) {
                                     //If the target location is of block air, then spawn the block at the target location. Otherwise, spawn it where the player is standing.
                                     entity = event.getPlayer().getWorld().spawnEntity(new Location(event.getClickedBlock().getWorld(), x, y, z).getBlock().getType() == Material.AIR ? new Location(event.getClickedBlock().getWorld(), x, y, z) : event.getPlayer().getLocation(), EntityType.OCELOT);
@@ -74,7 +74,7 @@ public class EggClick implements Listener {
                                     entity = event.getPlayer().getWorld().spawnEntity(new Location(event.getClickedBlock().getWorld(), x, y, z).getBlock().getType() == Material.AIR ? new Location(event.getClickedBlock().getWorld(), x, y, z) : event.getPlayer().getLocation(), EntityType.HORSE);
                                 }
 
-                                //Remove egg from hand. (This isn't a cloning plugin, after all.)
+                                //Remove egg from hand.
                                 event.getPlayer().getInventory().setItemInHand(new ItemStack(Material.AIR));
 
                                 //Try to restore the pet, this shouldn't fail. More of a debug thing.

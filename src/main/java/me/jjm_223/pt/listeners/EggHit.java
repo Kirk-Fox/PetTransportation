@@ -62,9 +62,7 @@ public class EggHit implements Listener {
                 }
                 ItemStack item = new ItemStack(Material.MONSTER_EGG, 1, type);
 
-                //Create the lore.
                 List<String> lore = new ArrayList<String>();
-                //If the animal has a name, set the first line as the name. Otherwise if the animal is an ocelot, set the first line as "Cat". If it is a wolf, set the first line as "Dog". Otherwise set it to horse.
                 String animalName;
                 if (event.getEntityType() == EntityType.OCELOT) {
                     animalName = "Cat";
@@ -76,11 +74,9 @@ public class EggHit implements Listener {
                 lore.add(event.getEntity().getCustomName() != null ? ChatColor.ITALIC + event.getEntity().getCustomName() : ChatColor.ITALIC + animalName);
                 //Add the UUID to the second line as identification when being respawned.
                 lore.add(storageID.toString());
-                //Get the metadata.
+                //Add lore to metadata.
                 ItemMeta meta = item.getItemMeta();
-                //Add the lore to the metadata.
                 meta.setLore(lore);
-                //Put the metadata back into the item.
                 item.setItemMeta(meta);
 
                 //Drop inventory contents of horse.
