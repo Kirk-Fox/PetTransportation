@@ -28,10 +28,10 @@ public class EggHit implements Listener {
         this.plugin = plugin;
     }
 
-    //When an entity is damaged by another entity...
+    // When an entity is damaged by another entity...
     @EventHandler
     public void onEgg(EntityDamageByEntityEvent event) {
-        //Make sure damager is an egg projectile, make sure the shooter is a player (safety first), make sure the victim is a pet, and make sure the pet has an owner.
+        // Make sure damager is an egg projectile, make sure the shooter is a player (safety first), make sure the victim is a pet, and make sure the pet has an owner.
         if (event.getDamager() instanceof Projectile
                 && event.getDamager().getType() == EntityType.EGG
                 && ((Projectile) event.getDamager()).getShooter() instanceof Player
@@ -40,18 +40,18 @@ public class EggHit implements Listener {
 
             Player player = (Player) ((Projectile) event.getDamager()).getShooter();
 
-            //Make sure that either the shooter is the owner of the pet, or the player has permission to override this, and the player has permission to capture mobs.
+            // Make sure that either the shooter is the owner of the pet, or the player has permission to override this, and the player has permission to capture mobs.
             if ((((Tameable) event.getEntity()).getOwner().getUniqueId().equals(player.getUniqueId()) || player.hasPermission("pt.override"))
                     && player.hasPermission("pt.capture")) {
 
-                //Cancel the event, we don't want them to get hurt, do we? (I hope you didn't answer yes D:)
+                // Cancel the event, we don't want them to get hurt, do we? (I hope you didn't answer yes D:)
                 event.setCancelled(true);
 
                 DataStorage storage = new DataStorage(plugin);
-                //Generate a random UUID to identify the pet in the config.
+                // Generate a random UUID to identify the pet in the config.
                 UUID storageID = UUID.randomUUID();
 
-                //Create a new itemstack. If the entity is an ocelot, give it a data value of 98, if it is a wolf give it a data value of 95 (wolf), otherwise give it a data value of 100 (horse).
+                // Create a new itemstack. If the entity is an ocelot, give it a data value of 98, if it is a wolf give it a data value of 95 (wolf), otherwise give it a data value of 100 (horse).
                 byte type;
                 if (event.getEntityType() == EntityType.OCELOT) {
                     type = 98;
@@ -72,14 +72,14 @@ public class EggHit implements Listener {
                     animalName = "Horse";
                 }
                 lore.add(event.getEntity().getCustomName() != null ? ChatColor.ITALIC + event.getEntity().getCustomName() : ChatColor.ITALIC + animalName);
-                //Add the UUID to the second line as identification when being respawned.
+                // Add the UUID to the second line as identification when being respawned.
                 lore.add(storageID.toString());
-                //Add lore to metadata.
+                // Add lore to metadata.
                 ItemMeta meta = item.getItemMeta();
                 meta.setLore(lore);
                 item.setItemMeta(meta);
 
-                //Drop inventory contents of horse.
+                // Drop inventory contents of horse.
                 if (event.getEntityType() == EntityType.HORSE) {
                     Horse horse = (Horse) event.getEntity();
                     for (ItemStack inventoryItem : horse.getInventory().getContents()) {
@@ -89,19 +89,19 @@ public class EggHit implements Listener {
                     }
                 }
 
-                //Drop the spawn egg with the data where the pet is sitting/standing.
+                // Drop the spawn egg with the data where the pet is sitting/standing.
                 player.getWorld().dropItemNaturally(event.getEntity().getLocation(), item);
 
-                //Murder the pet.
+                // Remove pet from world.
                 event.getEntity().remove();
 
-                //Attempt to save the pet. This should not fail, as it is only for debug.
+                // Attempt to save the pet. This should not fail, as it is only for debug.
                 try {
                     storage.savePet(event.getEntity(), storageID);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            //If the pet that was supposed to be captured was not owned by the egg thrower (and they don't have bypass perms), tell them off.
+            // If the pet that was supposed to be captured was not owned by the egg thrower (and they don't have bypass perms), tell them off.
             } else {
                 player.sendMessage(ChatColor.RED + "You can't capture that pet. It isn't yours! (Or you don't have permission)");
             }

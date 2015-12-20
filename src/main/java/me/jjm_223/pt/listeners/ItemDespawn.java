@@ -21,10 +21,9 @@ public class ItemDespawn implements Listener {
         storage = new DataStorage(plugin);
     }
 
-    //Called when an item despawns.
+    // Called when an item despawns.
     @EventHandler
     public void onDespawn(ItemDespawnEvent event) {
-        //Make sure item is indeed of the spawn egg persuasion, then remove it from the config.
         if (event.getEntity().getItemStack().getItemMeta().getLore() != null) {
             if (event.getEntity().getItemStack().getItemMeta().getLore().size() == 2) {
                 storage.configClean(event.getEntity().getItemStack().getItemMeta().getLore().get(1));
@@ -32,10 +31,9 @@ public class ItemDespawn implements Listener {
         }
     }
 
-    //Called when an item is destroyed by cactus/explosion/etc.
+    // Called when an item is destroyed by cactus/explosion/etc.
     @EventHandler
     public void onDestroy(EntityDamageEvent event) {
-        //Make sure item is indeed of the spawn egg persuasion, then remove it from the config.
         if (event.getEntity() instanceof Item) {
             Item item = (Item) event.getEntity();
             if (item.getItemStack().getItemMeta().getLore() != null) {

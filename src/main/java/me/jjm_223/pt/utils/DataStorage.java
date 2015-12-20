@@ -73,9 +73,9 @@ public class DataStorage {
     }
 
     public void savePet(Entity entity, UUID uuid) throws InvalidArgumentException {
-        //Saves entity, throws an InvalidArgumentException when the entity specified is not an Ocelot, Wolf, or Horse.
+        // Saves entity, throws an InvalidArgumentException when the entity specified is not an Ocelot, Wolf, or Horse.
         if (entity instanceof Ocelot || entity instanceof Wolf || entity instanceof Horse) {
-            //If it is a cat, go to saveCat(), otherwise it must be a dog, so go to saveDog().
+            // If it is a cat, go to saveCat(), otherwise it must be a dog, so go to saveDog().
             if (entity instanceof Ocelot) {
                 Ocelot pet = (Ocelot) entity;
                 saveCat(pet, uuid);
@@ -91,12 +91,12 @@ public class DataStorage {
         }
     }
 
-    //Saves a wolf entity
+    // Saves a wolf entity
     private void saveDog(Wolf wolf, UUID uuid) {
-        //Convert UUID to string for storage.
+        // Convert UUID to string for storage.
         String uuidString = uuid.toString();
 
-        //Store important dog info in variables.
+        // Store important dog info in variables.
         String petName = wolf.getCustomName();
         DyeColor collarColor = wolf.getCollarColor();
         int colorRGB = collarColor.getColor().asRGB();
@@ -105,7 +105,7 @@ public class DataStorage {
         int age = wolf.getAge();
         double wolfHealth = wolf.getHealth();
 
-        //Save dog info.
+        // Save dog info.
         config.set("pets." + uuidString + ".petName", petName);
         config.set("pets." + uuidString + ".collarColor", colorRGB);
         config.set("pets." + uuidString + ".petOwner", petOwnerUUID);
@@ -115,10 +115,10 @@ public class DataStorage {
     }
 
     private void saveCat(Ocelot ocelot, UUID uuid) {
-        //Convert UUID to string for storage.
+        // Convert UUID to string for storage.
         String uuidString = uuid.toString();
 
-        //Store important cat info in variables.
+        // Store important cat info in variables.
         String petName = ocelot.getCustomName();
         Ocelot.Type breed = ocelot.getCatType();
         String breedString = breed.toString();
@@ -127,7 +127,7 @@ public class DataStorage {
         int age = ocelot.getAge();
         double catHealth = ocelot.getHealth();
 
-        //Save cat info.
+        // Save cat info.
         config.set("pets." + uuidString + ".petName", petName);
         config.set("pets." + uuidString + ".breed", breedString);
         config.set("pets." + uuidString + ".petOwner", petOwnerUUID);
@@ -137,10 +137,10 @@ public class DataStorage {
     }
 
     private void saveHorse(Horse horse, UUID uuid) {
-        //Convert UUID to string for storage.
+        // Convert UUID to string for storage.
         String uuidString = uuid.toString();
 
-        //Store horse info to variables.
+        // Store horse info to variables.
         String petName = horse.getCustomName();
         String petOwnerUUID = horse.getOwner().getUniqueId().toString();
         Horse.Color color = horse.getColor();
@@ -152,7 +152,7 @@ public class DataStorage {
         double health = horse.getHealth();
         double speed = getHorseSpeed(horse);
 
-        //Save horse info.
+        // Save horse info.
         config.set("pets." + uuidString + ".petName", petName);
         config.set("pets." + uuidString + ".petOwner", petOwnerUUID);
         config.set("pets." + uuidString + ".color", color.toString());
@@ -166,7 +166,7 @@ public class DataStorage {
     }
 
     public void restorePet(Entity entity, UUID uuid) throws InvalidArgumentException {
-        //Make sure entity is an Ocelot, Wolf, or Horse if it isn't, throw an InvalidArgumentException.
+        // Make sure entity is an Ocelot, Wolf, or Horse if it isn't, throw an InvalidArgumentException.
         if (entity instanceof Ocelot || entity instanceof Wolf || entity instanceof Horse) {
             if (entity instanceof Ocelot) {
                 Ocelot pet = (Ocelot) entity;
@@ -185,10 +185,10 @@ public class DataStorage {
     }
 
     private void restoreDog(Wolf wolf, UUID uuid) {
-        //Convert UUID to string for loading from config.
+        // Convert UUID to string for loading from config.
         String uuidString = uuid.toString();
 
-        //Get pet data from config.
+        // Get pet data from config.
         String petName = config.getString("pets." + uuidString + ".petName");
         int colorRGB = config.getInt("pets." + uuidString + ".collarColor");
         UUID petOwnerUUID = UUID.fromString(config.getString("pets." + uuidString + ".petOwner"));
@@ -196,7 +196,7 @@ public class DataStorage {
         int age = config.getInt("pets." + uuidString + ".age");
         double wolfHealth = config.getDouble("pets." + uuidString + ".health");
 
-        //Sets pet data.
+        // Sets pet data.
         wolf.setCustomName(petName);
         wolf.setCollarColor(DyeColor.getByColor(Color.fromRGB(colorRGB)));
         wolf.setOwner(Bukkit.getOfflinePlayer(petOwnerUUID));
@@ -207,10 +207,10 @@ public class DataStorage {
     }
 
     private void restoreCat(Ocelot ocelot, UUID uuid) {
-        //Convert UUID to a string for reading the config.
+        // Convert UUID to a string for reading the config.
         String uuidString = uuid.toString();
 
-        //Get values from config.
+        // Get values from config.
         String petName = config.getString("pets." + uuidString + ".petName");
         String breedString = config.getString("pets." + uuidString + ".breed");
         Ocelot.Type breed = Ocelot.Type.valueOf(breedString);
@@ -219,7 +219,7 @@ public class DataStorage {
         int age = config.getInt("pets." + uuidString + ".age");
         double catHealth = config.getDouble("pets." + uuidString + ".health");
 
-        //Set cat info.
+        // Set cat info.
         ocelot.setCustomName(petName);
         ocelot.setCatType(breed);
         ocelot.setOwner(Bukkit.getOfflinePlayer(petOwnerUUID));
@@ -230,10 +230,10 @@ public class DataStorage {
     }
 
     private void restoreHorse(Horse horse, UUID uuid) {
-        //Convert UUID to string for reading config.
+        // Convert UUID to string for reading config.
         String uuidString = uuid.toString();
 
-        //Get values from config.
+        // Get values from config.
         String petName = config.getString("pets." + uuidString + ".petName");
         UUID petOwnerUUID = UUID.fromString(config.getString("pets." + uuidString + ".petOwner"));
         Horse.Color color = Horse.Color.valueOf(config.getString("pets." + uuidString + ".color"));
@@ -245,7 +245,7 @@ public class DataStorage {
         double health = config.getDouble("pets." + uuidString + ".health");
         double speed = config.getDouble("pets." + uuidString + ".speed");
 
-        //Set horse info.
+        // Set horse info.
         horse.setCustomName(petName);
         horse.setOwner(Bukkit.getOfflinePlayer(petOwnerUUID));
         horse.setColor(color);
@@ -260,22 +260,22 @@ public class DataStorage {
         setHorseSpeed(horse, speed);
     }
 
-    //Removes specified UUID from config. Used to keep the file small if possible.
+    // Removes specified UUID from config. Used to keep the file small if possible.
     public void configClean(String uuid) {
-        //Make sure the config has the UUID in it. This may not be necessary, but it is precautionary.
+        // Make sure the config has the UUID in it. This may not be necessary, but it is precautionary.
         if (config.contains("pets." + uuid)) {
-            //Nulls the section (thereby deleting the values).
+            // Nulls the section (thereby deleting the values).
             config.set("pets." + uuid, null);
         }
     }
 
-    //Get horse speed.
+    // Get horse speed.
     public double getHorseSpeed(Horse horse) {
         EntityHorse nmsHorse = ((CraftHorse) horse).getHandle();
         return nmsHorse.getAttributeInstance(GenericAttributes.MOVEMENT_SPEED).getValue();
     }
 
-    //Set horse speed.
+    // Set horse speed.
     public void setHorseSpeed(Horse horse, double value) {
         EntityHorse nmsHorse = ((CraftHorse) horse).getHandle();
         nmsHorse.getAttributeInstance(GenericAttributes.MOVEMENT_SPEED).setValue(value);
