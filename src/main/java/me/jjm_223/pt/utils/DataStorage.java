@@ -1,6 +1,5 @@
 package me.jjm_223.pt.utils;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import net.minecraft.server.v1_8_R3.EntityHorse;
 import net.minecraft.server.v1_8_R3.GenericAttributes;
 import org.bukkit.Bukkit;
@@ -72,8 +71,8 @@ public class DataStorage {
         }
     }
 
-    public void savePet(Entity entity, UUID uuid) throws InvalidArgumentException {
-        // Saves entity, throws an InvalidArgumentException when the entity specified is not an Ocelot, Wolf, or Horse.
+    public void savePet(Entity entity, UUID uuid) throws IllegalArgumentException {
+        // Saves entity, throws an IllegalArgumentException when the entity specified is not an Ocelot, Wolf, or Horse.
         if (entity instanceof Ocelot || entity instanceof Wolf || entity instanceof Horse) {
             // If it is a cat, go to saveCat(), otherwise it must be a dog, so go to saveDog().
             if (entity instanceof Ocelot) {
@@ -87,7 +86,7 @@ public class DataStorage {
                 saveHorse(pet, uuid);
             }
         } else {
-            throw new InvalidArgumentException(new String[] {"The entity specified was not a Wolf, Ocelot, or Horse."});
+            throw new IllegalArgumentException("The entity specified was not a Wolf, Ocelot, or Horse.");
         }
     }
 
@@ -165,8 +164,8 @@ public class DataStorage {
         config.set("pets." + uuidString + ".speed", speed);
     }
 
-    public void restorePet(Entity entity, UUID uuid) throws InvalidArgumentException {
-        // Make sure entity is an Ocelot, Wolf, or Horse if it isn't, throw an InvalidArgumentException.
+    public void restorePet(Entity entity, UUID uuid) throws IllegalArgumentException {
+        // Make sure entity is an Ocelot, Wolf, or Horse if it isn't, throw an IllegalArgumentException.
         if (entity instanceof Ocelot || entity instanceof Wolf || entity instanceof Horse) {
             if (entity instanceof Ocelot) {
                 Ocelot pet = (Ocelot) entity;
@@ -180,7 +179,7 @@ public class DataStorage {
             }
             configClean(uuid.toString());
         } else {
-            throw new InvalidArgumentException(new String[] {"The entity specified was not a Wolf, Ocelot, or Horse."});
+            throw new IllegalArgumentException("The entity specified was not a Wolf, Ocelot, or Horse.");
         }
     }
 
