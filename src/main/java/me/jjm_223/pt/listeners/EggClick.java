@@ -5,11 +5,13 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.SpawnEgg;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -46,11 +48,11 @@ public class EggClick implements Listener {
                 // Set up the location.
                 double x = event.getClickedBlock().getX();
                 // Make sure entity is spawned in the middle of a block. (Prevents suffocation)
-                x = x + ((int) Math.signum(x) * 0.5);
+                x += 0.5;
                 // Set y to the block above the clicked block.
                 double y = event.getClickedBlock().getRelative(0, 1, 0).getY();
                 double z = event.getClickedBlock().getZ();
-                z = z + ((int) Math.signum(x) * 0.5);
+                z += 0.5;
 
                 DataStorage dataStorage = new DataStorage(plugin);
 
@@ -63,11 +65,11 @@ public class EggClick implements Listener {
                 }
 
                 // Get spawn egg type.
-                SpawnEgg spawnEgg = ((SpawnEgg) event.getItem().getData());
-                Entity entity = event.getClickedBlock().getWorld().spawnEntity(spawnLoc, spawnEgg.getSpawnedType());
+                EntityType type = dataStorage.identifyPet(uuid.toString());
+                Entity entity = event.getClickedBlock().getWorld().spawnEntity(spawnLoc, type);
 
                 // Remove egg from hand.
-                event.getPlayer().getInventory().setItemInHand(new ItemStack(Material.AIR));
+                event.getPlayer().getInventory().setItemInMainHand(new ItemStack(Material.AIR));
 
                 // Try to restore the pet, this shouldn't fail. More of a debug thing.
                 try {

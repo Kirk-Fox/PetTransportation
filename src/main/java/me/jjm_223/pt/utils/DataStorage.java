@@ -1,18 +1,16 @@
 package me.jjm_223.pt.utils;
 
-import net.minecraft.server.v1_8_R3.EntityHorse;
-import net.minecraft.server.v1_8_R3.GenericAttributes;
+import net.minecraft.server.v1_9_R1.EntityHorse;
+import net.minecraft.server.v1_9_R1.GenericAttributes;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.v1_8_R3.entity.CraftHorse;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Horse;
-import org.bukkit.entity.Ocelot;
-import org.bukkit.entity.Wolf;
+import org.bukkit.craftbukkit.v1_9_R1.entity.CraftHorse;
+import org.bukkit.entity.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -257,6 +255,19 @@ public class DataStorage {
         horse.setTamed(true);
         horse.setRemoveWhenFarAway(false);
         setHorseSpeed(horse, speed);
+    }
+
+    public EntityType identifyPet(String uuid) {
+        ConfigurationSection section = config.getConfigurationSection("pets." + uuid);
+        if (section.contains("variant")) {
+            return EntityType.HORSE;
+        } else if (section.contains("breed")) {
+            return EntityType.OCELOT;
+        } else if (section.contains("collarColor")) {
+            return EntityType.WOLF;
+        } else {
+            return null;
+        }
     }
 
     // Removes specified UUID from config. Used to keep the file small if possible.
