@@ -5,6 +5,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
@@ -19,7 +20,6 @@ import java.util.UUID;
  * Listens for an egg hit.
  */
 
-@SuppressWarnings("unused")
 public class EggHit implements Listener {
 
     private JavaPlugin plugin;
@@ -29,8 +29,12 @@ public class EggHit implements Listener {
     }
 
     // When an entity is damaged by another entity...
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onEgg(EntityDamageByEntityEvent event) {
+        if (event.isCancelled()) {
+            return;
+        }
+
         // Make sure damager is an egg projectile, make sure the shooter is a player (safety first), make sure the victim is a pet, and make sure the pet has an owner.
         if (event.getDamager() instanceof Projectile
                 && event.getDamager().getType() == EntityType.EGG

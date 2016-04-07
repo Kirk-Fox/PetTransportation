@@ -7,6 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -23,14 +24,18 @@ import java.util.UUID;
 
 public class EggClick implements Listener {
 
-    JavaPlugin plugin;
+    private JavaPlugin plugin;
 
     public EggClick(JavaPlugin plugin) {
         this.plugin = plugin;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onInteract(PlayerInteractEvent event) {
+        if (event.isCancelled()) {
+            return;
+        }
+
         if (event.getPlayer().hasPermission("pt.restore")
                 && event.getItem() != null
                 && event.getAction() == Action.RIGHT_CLICK_BLOCK
