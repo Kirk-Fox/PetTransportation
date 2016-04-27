@@ -11,7 +11,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Main class for pt.
+ * Main class for PetTransportation.
  */
 public class PetTransportation extends JavaPlugin {
 
