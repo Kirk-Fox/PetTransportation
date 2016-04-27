@@ -30,12 +30,8 @@ public class EggClick implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onInteract(PlayerInteractEvent event) {
-        if (event.isCancelled()) {
-            return;
-        }
-
         if (event.getPlayer().hasPermission("pt.restore")
                 && event.getItem() != null
                 && event.getAction() == Action.RIGHT_CLICK_BLOCK

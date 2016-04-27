@@ -3,6 +3,7 @@ package me.jjm_223.pt.listeners;
 import me.jjm_223.pt.utils.DataStorage;
 import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.ItemDespawnEvent;
@@ -22,7 +23,7 @@ public class ItemDespawn implements Listener {
     }
 
     // Called when an item despawns.
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDespawn(ItemDespawnEvent event) {
         if (event.getEntity().getItemStack().getItemMeta().getLore() != null) {
             if (event.getEntity().getItemStack().getItemMeta().getLore().size() == 2) {
@@ -32,7 +33,7 @@ public class ItemDespawn implements Listener {
     }
 
     // Called when an item is destroyed by cactus/explosion/etc.
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDestroy(EntityDamageEvent event) {
         if (event.getEntity() instanceof Item) {
             Item item = (Item) event.getEntity();

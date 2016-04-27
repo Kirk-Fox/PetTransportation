@@ -29,12 +29,8 @@ public class EggHit implements Listener {
     }
 
     // When an entity is damaged by another entity...
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEgg(EntityDamageByEntityEvent event) {
-        if (event.isCancelled()) {
-            return;
-        }
-
         // Make sure damager is an egg projectile, make sure the shooter is a player (safety first), make sure the victim is a pet, and make sure the pet has an owner.
         if (event.getDamager() instanceof Projectile
                 && event.getDamager().getType() == EntityType.EGG
