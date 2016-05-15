@@ -1,15 +1,13 @@
 package me.jjm_223.pt.utils;
 
-import net.minecraft.server.v1_9_R1.EntityHorse;
-import net.minecraft.server.v1_9_R1.GenericAttributes;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.v1_9_R1.entity.CraftHorse;
 import org.bukkit.entity.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -281,13 +279,11 @@ public class DataStorage {
 
     // Get horse speed.
     public double getHorseSpeed(Horse horse) {
-        EntityHorse nmsHorse = ((CraftHorse) horse).getHandle();
-        return nmsHorse.getAttributeInstance(GenericAttributes.MOVEMENT_SPEED).getValue();
+        return horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
     }
 
     // Set horse speed.
     public void setHorseSpeed(Horse horse, double value) {
-        EntityHorse nmsHorse = ((CraftHorse) horse).getHandle();
-        nmsHorse.getAttributeInstance(GenericAttributes.MOVEMENT_SPEED).setValue(value);
+        horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue(value);
     }
 }
