@@ -51,16 +51,8 @@ public class EggHit implements Listener {
                 // Generate a random UUID to identify the pet in the config.
                 UUID storageID = UUID.randomUUID();
 
-                // Create a new itemstack. If the entity is an ocelot, give it a data value of 98, if it is a wolf give it a data value of 95 (wolf), otherwise give it a data value of 100 (horse).
-                byte type;
-                if (event.getEntityType() == EntityType.OCELOT) {
-                    type = 98;
-                } else if (event.getEntityType() == EntityType.WOLF) {
-                    type = 95;
-                } else {
-                    type = 100;
-                }
-                ItemStack item = new ItemStack(Material.MONSTER_EGG, 1, type);
+                // Create a new spawn egg. (The Bukkit API does not allow changing the type of a spawn egg as of 1.9.)
+                ItemStack item = new ItemStack(Material.MONSTER_EGG, 1);
 
                 List<String> lore = new ArrayList<String>();
                 String animalName;
