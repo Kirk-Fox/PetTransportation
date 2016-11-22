@@ -21,69 +21,61 @@ import java.util.UUID;
  */
 public class DataStorage {
 
-    public static FileConfiguration config;
-    public static boolean hasLoaded;
-    public JavaPlugin plugin;
-    public static File save;
+    private FileConfiguration config;
+    private File saveFile;
 
     public DataStorage(JavaPlugin plugin) {
-        if (!hasLoaded) {
-            config = new YamlConfiguration();
-            this.plugin = plugin;
+        config = new YamlConfiguration();
 
-            save = new File(plugin.getDataFolder() + File.separator + "pets.yml");
+        saveFile = new File(plugin.getDataFolder() + File.separator + "pets.yml");
 
-            if (!save.exists()) {
-                try {
-                    if (!save.getParentFile().exists()) {
-                        save.getParentFile().mkdir();
-                    }
-                    save.createNewFile();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return;
-                }
-            }
-
+        if (!saveFile.exists()) {
             try {
-                config.load(save);
+                if (!saveFile.getParentFile().exists()) {
+                    saveFile.getParentFile().mkdir();
+                }
+                saveFile.createNewFile();
             } catch (IOException e) {
                 e.printStackTrace();
-            } catch (InvalidConfigurationException e) {
-                e.printStackTrace();
+                return;
             }
-
-            new BukkitRunnable() {
-                public void run() {
-                    try {
-                        config.save(save);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }.runTaskTimerAsynchronously(plugin, 0L, 200L);
-
-            hasLoaded = true;
         }
+
+        try {
+            config.load(saveFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InvalidConfigurationException e) {
+            e.printStackTrace();
+        }
+
+        new BukkitRunnable() {
+            public void run() {
+                try {
+                    config.save(saveFile);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.runTaskTimerAsynchronously(plugin, 0L, 200L);
     }
 
     public void savePet(Entity entity, UUID uuid) throws IllegalArgumentException {
-        // Saves entity, throws an IllegalArgumentException when the entity specified is not an Ocelot, Wolf, or Horse.
-        if (entity instanceof Ocelot || entity instanceof Wolf || entity instanceof Horse) {
-            // If it is a cat, go to saveCat(), otherwise it must be a dog, so go to saveDog().
-            if (entity instanceof Ocelot) {
-                Ocelot pet = (Ocelot) entity;
-                saveCat(pet, uuid);
-            } else if (entity instanceof Wolf){
-                Wolf pet = (Wolf) entity;
-                saveDog(pet, uuid);
-            } else {
-                Horse pet = (Horse) entity;
-                saveHorse(pet, uuid);
-            }
+        // Saves entity, throws an IllegalArgumentException when the entity specified is not an Ocelot, Wolf, or AbstractHorse.
+        if (entity instanceof Ocelot) {
+            Ocelot pet = (Ocelot) entity;
+            saveCat(pet, uuid);
+        } else if (entity instanceof Wolf) {
+            Wolf pet = (Wolf) entity;
+            saveDog(pet, uuid);
+        } else if (entity instanceof AbstractHorse) {
+            AbstractHorse pet = (AbstractHorse) entity;
+            saveAbstractHorse(pet, uuid);
         } else {
-            throw new IllegalArgumentException("The entity specified was not a Wolf, Ocelot, or Horse.");
+            throw new IllegalArgumentException("The entity specified was not a Wolf, Ocelot, or AbstractHorse.");
         }
+
+        config.set("pets." + uuid + ".entitytype", entity.getType().name());
     }
 
     // Saves a wolf entity
@@ -131,52 +123,56 @@ public class DataStorage {
         config.set("pets." + uuidString + ".health", catHealth);
     }
 
-    private void saveHorse(Horse horse, UUID uuid) {
+    private void saveAbstractHorse(AbstractHorse abstractHorse, UUID uuid) {
         // Convert UUID to string for storage.
         String uuidString = uuid.toString();
 
-        // Store horse info to variables.
-        String petName = horse.getCustomName();
-        String petOwnerUUID = horse.getOwner().getUniqueId().toString();
-        Horse.Color color = horse.getColor();
-        Horse.Style style = horse.getStyle();
-        Horse.Variant variant = horse.getVariant();
-        double jump = horse.getJumpStrength();
-        int age = horse.getAge();
-        double maxHealth = horse.getMaxHealth();
-        double health = horse.getHealth();
-        double speed = getHorseSpeed(horse);
+        // Store abstract horse info to variables.
+        String petName = abstractHorse.getCustomName();
+        String petOwnerUUID = abstractHorse.getOwner().getUniqueId().toString();
+        double jump = abstractHorse.getJumpStrength();
+        int age = abstractHorse.getAge();
+        double maxHealth = abstractHorse.getMaxHealth();
+        double health = abstractHorse.getHealth();
+        double speed = getHorseSpeed(abstractHorse);
 
-        // Save horse info.
         config.set("pets." + uuidString + ".petName", petName);
         config.set("pets." + uuidString + ".petOwner", petOwnerUUID);
-        config.set("pets." + uuidString + ".color", color.toString());
-        config.set("pets." + uuidString + ".style", style.toString());
-        config.set("pets." + uuidString + ".variant", variant.toString());
         config.set("pets." + uuidString + ".jump", jump);
         config.set("pets." + uuidString + ".age", age);
         config.set("pets." + uuidString + ".maxHealth", maxHealth);
         config.set("pets." + uuidString + ".health", health);
         config.set("pets." + uuidString + ".speed", speed);
+
+        if (abstractHorse instanceof Horse) {
+            Horse.Color color = ((Horse) abstractHorse).getColor();
+            Horse.Style style = ((Horse) abstractHorse).getStyle();
+
+            config.set("pets." + uuidString + ".color", color.toString());
+            config.set("pets." + uuidString + ".style", style.toString());
+        } else if (abstractHorse instanceof Llama) {
+            Llama.Color color = ((Llama) abstractHorse).getColor();
+
+            config.set("pets." + uuidString + ".color", color.toString());
+        }
     }
 
     public void restorePet(Entity entity, UUID uuid) throws IllegalArgumentException {
         // Make sure entity is an Ocelot, Wolf, or Horse if it isn't, throw an IllegalArgumentException.
-        if (entity instanceof Ocelot || entity instanceof Wolf || entity instanceof Horse) {
-            if (entity instanceof Ocelot) {
-                Ocelot pet = (Ocelot) entity;
-                restoreCat(pet, uuid);
-            } else if (entity instanceof Wolf){
-                Wolf pet = (Wolf) entity;
-                restoreDog(pet, uuid);
-            } else {
-                Horse pet = (Horse) entity;
-                restoreHorse(pet, uuid);
-            }
-            configClean(uuid.toString());
+        if (entity instanceof Ocelot) {
+            Ocelot pet = (Ocelot) entity;
+            restoreCat(pet, uuid);
+        } else if (entity instanceof Wolf) {
+            Wolf pet = (Wolf) entity;
+            restoreDog(pet, uuid);
+        } else if (entity instanceof AbstractHorse) {
+            AbstractHorse pet = (AbstractHorse) entity;
+            restoreAbstractHorse(pet, uuid);
         } else {
-            throw new IllegalArgumentException("The entity specified was not a Wolf, Ocelot, or Horse.");
+            throw new IllegalArgumentException("The entity specified was not a Wolf, Ocelot, or AbstractHorse.");
         }
+
+        configClean(uuid.toString());
     }
 
     private void restoreDog(Wolf wolf, UUID uuid) {
@@ -224,28 +220,22 @@ public class DataStorage {
         ocelot.setRemoveWhenFarAway(false);
     }
 
-    private void restoreHorse(Horse horse, UUID uuid) {
+    private void restoreAbstractHorse(AbstractHorse horse, UUID uuid) {
         // Convert UUID to string for reading config.
         String uuidString = uuid.toString();
 
-        // Get values from config.
+        // Get abstract horse values from config.
         String petName = config.getString("pets." + uuidString + ".petName");
         UUID petOwnerUUID = UUID.fromString(config.getString("pets." + uuidString + ".petOwner"));
-        Horse.Color color = Horse.Color.valueOf(config.getString("pets." + uuidString + ".color"));
-        Horse.Style style = Horse.Style.valueOf(config.getString("pets." + uuidString + ".style"));
-        Horse.Variant variant = Horse.Variant.valueOf(config.getString("pets." + uuidString + ".variant"));
         double jump = config.getDouble("pets." + uuidString + ".jump");
         int age = config.getInt("pets." + uuidString + ".age");
         double maxHealth = config.getDouble("pets." + uuidString + ".maxHealth");
         double health = config.getDouble("pets." + uuidString + ".health");
         double speed = config.getDouble("pets." + uuidString + ".speed");
 
-        // Set horse info.
+        // Set abstract horse info.
         horse.setCustomName(petName);
         horse.setOwner(Bukkit.getOfflinePlayer(petOwnerUUID));
-        horse.setColor(color);
-        horse.setStyle(style);
-        horse.setVariant(variant);
         horse.setJumpStrength(jump);
         horse.setAge(age);
         horse.setMaxHealth(maxHealth);
@@ -253,11 +243,43 @@ public class DataStorage {
         horse.setTamed(true);
         horse.setRemoveWhenFarAway(false);
         setHorseSpeed(horse, speed);
+
+        if (horse instanceof Horse) {
+            Horse.Color color = Horse.Color.valueOf(config.getString("pets." + uuidString + ".color"));
+            Horse.Style style = Horse.Style.valueOf(config.getString("pets." + uuidString + ".style"));
+
+            ((Horse) horse).setColor(color);
+            ((Horse) horse).setStyle(style);
+        } else if (horse instanceof Llama) {
+            Llama.Color color = Llama.Color.valueOf(config.getString("pets." + uuidString + ".color"));
+
+            ((Llama) horse).setColor(color);
+        }
     }
 
     public EntityType identifyPet(String uuid) {
         ConfigurationSection section = config.getConfigurationSection("pets." + uuid);
+        if (section == null)
+            throw new IllegalArgumentException("No such UUID exists in the configuration.");
+
+        if (section.contains("entitytype"))
+            return EntityType.valueOf(section.getString("entitytype"));
+
         if (section.contains("variant")) {
+            Horse.Variant variant = Horse.Variant.valueOf(section.getString("variant"));
+            switch (variant) {
+                case HORSE:
+                    return EntityType.HORSE;
+                case UNDEAD_HORSE:
+                    return EntityType.ZOMBIE_HORSE;
+                case SKELETON_HORSE:
+                    return EntityType.SKELETON_HORSE;
+                case DONKEY:
+                    return EntityType.DONKEY;
+                case MULE:
+                    return EntityType.MULE;
+            }
+
             return EntityType.HORSE;
         } else if (section.contains("breed")) {
             return EntityType.OCELOT;
@@ -278,12 +300,24 @@ public class DataStorage {
     }
 
     // Get horse speed.
-    public double getHorseSpeed(Horse horse) {
+    private double getHorseSpeed(AbstractHorse horse) {
         return horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
     }
 
     // Set horse speed.
-    public void setHorseSpeed(Horse horse, double value) {
+    private void setHorseSpeed(AbstractHorse horse, double value) {
         horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue(value);
+    }
+
+    public boolean contains(UUID uuid) {
+        return config.contains("pets." + uuid);
+    }
+
+    public boolean contains(String string) {
+        return contains(UUID.fromString(string));
+    }
+
+    public void save() throws IOException {
+        config.save(saveFile);
     }
 }

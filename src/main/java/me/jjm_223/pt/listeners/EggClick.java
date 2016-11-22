@@ -1,5 +1,6 @@
 package me.jjm_223.pt.listeners;
 
+import me.jjm_223.pt.PetTransportation;
 import me.jjm_223.pt.utils.DataStorage;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -12,7 +13,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.UUID;
 
@@ -22,9 +22,9 @@ import java.util.UUID;
 
 public class EggClick implements Listener {
 
-    private JavaPlugin plugin;
+    private PetTransportation plugin;
 
-    public EggClick(JavaPlugin plugin) {
+    public EggClick(PetTransportation plugin) {
         this.plugin = plugin;
     }
 
@@ -36,7 +36,7 @@ public class EggClick implements Listener {
                 && event.getItem().getType() == Material.MONSTER_EGG
                 && event.getItem().getItemMeta().getLore() != null
                 && event.getItem().getItemMeta().getLore().size() == 2
-                && DataStorage.config.contains("pets." + event.getItem().getItemMeta().getLore().get(1))) {
+                && plugin.getStorage().contains(event.getItem().getItemMeta().getLore().get(1))) {
             event.setCancelled(true);
 
             if (event.getPlayer().hasPermission("pt.restore")) {
@@ -53,7 +53,7 @@ public class EggClick implements Listener {
                 double z = event.getClickedBlock().getZ();
                 z += 0.5;
 
-                DataStorage dataStorage = new DataStorage(plugin);
+                DataStorage dataStorage = plugin.getStorage();
 
                 // Create spawn location.
                 Location spawnLoc = new Location(event.getClickedBlock().getWorld(), x, y, z);

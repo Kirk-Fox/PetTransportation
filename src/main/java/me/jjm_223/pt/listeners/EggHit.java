@@ -1,5 +1,6 @@
 package me.jjm_223.pt.listeners;
 
+import me.jjm_223.pt.PetTransportation;
 import me.jjm_223.pt.utils.DataStorage;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -10,7 +11,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,9 +22,9 @@ import java.util.UUID;
 
 public class EggHit implements Listener {
 
-    private JavaPlugin plugin;
+    private PetTransportation plugin;
 
-    public EggHit(JavaPlugin plugin) {
+    public EggHit(PetTransportation plugin) {
         this.plugin = plugin;
     }
 
@@ -35,7 +35,7 @@ public class EggHit implements Listener {
         if (event.getDamager() instanceof Projectile
                 && event.getDamager().getType() == EntityType.EGG
                 && ((Projectile) event.getDamager()).getShooter() instanceof Player
-                && (event.getEntity() instanceof Wolf || event.getEntity() instanceof Ocelot || event.getEntity() instanceof Horse)
+                && (event.getEntity() instanceof Wolf || event.getEntity() instanceof Ocelot || event.getEntity() instanceof AbstractHorse)
                 && ((Tameable) event.getEntity()).getOwner() != null) {
 
             Player player = (Player) ((Projectile) event.getDamager()).getShooter();
@@ -47,7 +47,7 @@ public class EggHit implements Listener {
                 // Cancel the event, we don't want them to get hurt, do we? (I hope you didn't answer yes D:)
                 event.setCancelled(true);
 
-                DataStorage storage = new DataStorage(plugin);
+                DataStorage storage = plugin.getStorage();
                 // Generate a random UUID to identify the pet in the config.
                 UUID storageID = UUID.randomUUID();
 
@@ -61,7 +61,7 @@ public class EggHit implements Listener {
                 } else if (event.getEntityType() == EntityType.WOLF) {
                     animalName = "Dog";
                 } else {
-                    animalName = "Horse";
+                    animalName = event.getEntity().getName();
                 }
                 lore.add(event.getEntity().getCustomName() != null ? ChatColor.ITALIC + event.getEntity().getCustomName() : ChatColor.ITALIC + animalName);
                 // Add the UUID to the second line as identification when being respawned.
@@ -72,8 +72,8 @@ public class EggHit implements Listener {
                 item.setItemMeta(meta);
 
                 // Drop inventory contents of horse.
-                if (event.getEntityType() == EntityType.HORSE) {
-                    Horse horse = (Horse) event.getEntity();
+                if (event.getEntity() instanceof ChestedHorse) {
+                    ChestedHorse horse = (ChestedHorse) event.getEntity();
                     for (ItemStack inventoryItem : horse.getInventory().getContents()) {
                         if (inventoryItem != null) {
                             horse.getWorld().dropItemNaturally(horse.getLocation(), inventoryItem);

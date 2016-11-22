@@ -15,6 +15,8 @@ import java.io.IOException;
  */
 public class PetTransportation extends JavaPlugin {
 
+    private DataStorage storage;
+
     @Override
     public void onEnable() {
         //Register relevant events.
@@ -22,15 +24,21 @@ public class PetTransportation extends JavaPlugin {
         pm.registerEvents(new EggHit(this), this);
         pm.registerEvents(new EggClick(this), this);
         pm.registerEvents(new ItemDespawn(this), this);
+
+        storage = new DataStorage(this);
     }
 
     @Override
     public void onDisable() {
         try {
-            DataStorage.config.save(new File(this.getDataFolder() + File.separator + "pets.yml"));
+            storage.save();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    public DataStorage getStorage()
+    {
+        return this.storage;
+    }
 }

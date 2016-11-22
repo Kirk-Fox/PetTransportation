@@ -1,5 +1,6 @@
 package me.jjm_223.pt.listeners;
 
+import me.jjm_223.pt.PetTransportation;
 import me.jjm_223.pt.utils.DataStorage;
 import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
@@ -7,7 +8,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.ItemDespawnEvent;
-import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * Helps config cleanup by keeping track of despawns and removals.
@@ -18,8 +18,8 @@ public class ItemDespawn implements Listener {
 
     private DataStorage storage;
 
-    public ItemDespawn(JavaPlugin plugin) {
-        storage = new DataStorage(plugin);
+    public ItemDespawn(PetTransportation plugin) {
+        storage = plugin.getStorage();
     }
 
     // Called when an item despawns.
