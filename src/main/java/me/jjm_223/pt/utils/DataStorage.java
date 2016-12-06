@@ -152,8 +152,10 @@ public class DataStorage {
             config.set("pets." + uuidString + ".style", style.toString());
         } else if (abstractHorse instanceof Llama) {
             Llama.Color color = ((Llama) abstractHorse).getColor();
+            int strength = ((Llama) abstractHorse).getStrength();
 
             config.set("pets." + uuidString + ".color", color.toString());
+            config.set("pets." + uuidString + ".strength", strength);
         }
     }
 
@@ -252,8 +254,13 @@ public class DataStorage {
             ((Horse) horse).setStyle(style);
         } else if (horse instanceof Llama) {
             Llama.Color color = Llama.Color.valueOf(config.getString("pets." + uuidString + ".color"));
+            int strength = config.getInt("pets." + uuidString + ".strength");
 
             ((Llama) horse).setColor(color);
+            // This was implemented later on- config may not have an option set.
+            if (strength > 0) {
+                ((Llama) horse).setStrength(strength);
+            }
         }
     }
 
