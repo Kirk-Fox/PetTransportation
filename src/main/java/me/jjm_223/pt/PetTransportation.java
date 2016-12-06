@@ -19,13 +19,12 @@ public class PetTransportation extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        //Register relevant events.
+        storage = new DataStorage(this);
+
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(new EggHit(this), this);
         pm.registerEvents(new EggClick(this), this);
         pm.registerEvents(new ItemDespawn(this), this);
-
-        storage = new DataStorage(this);
     }
 
     @Override
