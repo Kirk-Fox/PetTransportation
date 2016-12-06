@@ -3,12 +3,14 @@ package me.jjm_223.pt.listeners;
 import me.jjm_223.pt.PetTransportation;
 import me.jjm_223.pt.utils.DataStorage;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -72,11 +74,12 @@ public class EggHit implements Listener {
                 item.setItemMeta(meta);
 
                 // Drop inventory contents of horse.
-                if (event.getEntity() instanceof ChestedHorse) {
-                    ChestedHorse horse = (ChestedHorse) event.getEntity();
-                    for (ItemStack inventoryItem : horse.getInventory().getContents()) {
+                if (event.getEntity() instanceof InventoryHolder) {
+                    Location loc = event.getEntity().getLocation();
+                    InventoryHolder invHolder = (InventoryHolder) event.getEntity();
+                    for (ItemStack inventoryItem : invHolder.getInventory().getContents()) {
                         if (inventoryItem != null) {
-                            horse.getWorld().dropItemNaturally(horse.getLocation(), inventoryItem);
+                            loc.getWorld().dropItemNaturally(loc, inventoryItem);
                         }
                     }
                 }
