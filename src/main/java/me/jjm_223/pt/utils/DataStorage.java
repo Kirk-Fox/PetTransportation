@@ -242,7 +242,7 @@ public class DataStorage {
         horse.setOwner(Bukkit.getOfflinePlayer(petOwnerUUID));
         horse.setJumpStrength(jump);
         horse.setAge(age);
-        horse.setMaxHealth(maxHealth);
+        horse.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);
         horse.setHealth(health);
         horse.setTamed(true);
         horse.setRemoveWhenFarAway(false);
