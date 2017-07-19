@@ -132,7 +132,7 @@ public class DataStorage {
         String petOwnerUUID = abstractHorse.getOwner().getUniqueId().toString();
         double jump = abstractHorse.getJumpStrength();
         int age = abstractHorse.getAge();
-        double maxHealth = abstractHorse.getMaxHealth();
+        double maxHealth = abstractHorse.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
         double health = abstractHorse.getHealth();
         double speed = getHorseSpeed(abstractHorse);
 

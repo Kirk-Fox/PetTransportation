@@ -7,7 +7,6 @@ import me.jjm_223.pt.utils.DataStorage;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
 import java.io.IOException;
 
 /**
