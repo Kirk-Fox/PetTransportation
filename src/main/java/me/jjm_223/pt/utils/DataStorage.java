@@ -85,8 +85,7 @@ public class DataStorage {
 
         // Store important dog info in variables.
         String petName = wolf.getCustomName();
-        DyeColor collarColor = wolf.getCollarColor();
-        int colorRGB = collarColor.getColor().asRGB();
+        String colorString = wolf.getCollarColor().toString();
         String petOwnerUUID = wolf.getOwner().getUniqueId().toString();
         boolean isSitting = wolf.isSitting();
         int age = wolf.getAge();
@@ -94,7 +93,7 @@ public class DataStorage {
 
         // Save dog info.
         config.set("pets." + uuidString + ".petName", petName);
-        config.set("pets." + uuidString + ".collarColor", colorRGB);
+        config.set("pets." + uuidString + ".collarColor", colorString);
         config.set("pets." + uuidString + ".petOwner", petOwnerUUID);
         config.set("pets." + uuidString + ".isSitting", isSitting);
         config.set("pets." + uuidString + ".age", age);
@@ -185,7 +184,7 @@ public class DataStorage {
 
         // Get pet data from config.
         String petName = config.getString("pets." + uuidString + ".petName");
-        int colorRGB = config.getInt("pets." + uuidString + ".collarColor");
+        Object color = config.get("pets." + uuidString + ".collarColor");
         UUID petOwnerUUID = UUID.fromString(config.getString("pets." + uuidString + ".petOwner"));
         boolean isSitting = config.getBoolean("pets." + uuidString + ".isSitting");
         int age = config.getInt("pets." + uuidString + ".age");
@@ -193,7 +192,10 @@ public class DataStorage {
 
         // Sets pet data.
         wolf.setCustomName(petName);
-        wolf.setCollarColor(DyeColor.getByColor(Color.fromRGB(colorRGB)));
+        if (color instanceof String)
+        {
+            wolf.setCollarColor(DyeColor.valueOf(((String) color)));
+        }
         wolf.setOwner(Bukkit.getOfflinePlayer(petOwnerUUID));
         wolf.setSitting(isSitting);
         wolf.setAge(age);
