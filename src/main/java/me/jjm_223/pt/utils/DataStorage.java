@@ -160,7 +160,7 @@ public class DataStorage {
         }
     }
 
-    public void restorePet(Entity entity, UUID uuid) throws IllegalArgumentException {
+    public void restorePet(Entity entity, UUID uuid) {
         // Make sure entity is an Ocelot, Wolf, or Horse if it isn't, throw an IllegalArgumentException.
         if (entity instanceof Ocelot) {
             Ocelot pet = (Ocelot) entity;

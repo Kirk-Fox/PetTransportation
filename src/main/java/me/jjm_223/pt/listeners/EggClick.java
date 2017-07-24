@@ -75,12 +75,7 @@ public class EggClick implements Listener {
                 // Remove egg from hand.
                 event.getPlayer().getInventory().setItemInMainHand(new ItemStack(Material.AIR));
 
-                // Try to restore the pet, this shouldn't fail. More of a debug thing.
-                try {
-                    dataStorage.restorePet(entity, uuid);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                dataStorage.restorePet(entity, uuid);
             } else {
                 event.getPlayer().sendMessage(ChatColor.RED + "You do not have permission to use that.");
             }
