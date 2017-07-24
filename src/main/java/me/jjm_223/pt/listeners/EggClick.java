@@ -5,8 +5,10 @@ import me.jjm_223.pt.utils.DataStorage;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -30,7 +32,9 @@ public class EggClick implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onInteract(PlayerInteractEvent event) {
-        if (event.getPlayer().hasPermission("pt.restore")
+        final Player player = event.getPlayer();
+
+        if (player.hasPermission("pt.restore")
                 && event.getItem() != null
                 && event.getAction() == Action.RIGHT_CLICK_BLOCK
                 && event.getItem().getType() == Material.MONSTER_EGG
@@ -39,45 +43,42 @@ public class EggClick implements Listener {
                 && plugin.getStorage().contains(event.getItem().getItemMeta().getLore().get(1))) {
             event.setCancelled(true);
 
-            if (event.getPlayer().hasPermission("pt.restore")) {
-                // Convert string from lore to UUID.
+            if (player.hasPermission("pt.restore")) {
                 String uuidString = event.getItem().getItemMeta().getLore().get(1);
                 UUID uuid = UUID.fromString(uuidString);
+                final Block clickedBlock = event.getClickedBlock();
 
-                // Set up the location.
-                double x = event.getClickedBlock().getX();
-                // Make sure entity is spawned in the middle of a block. (Prevents suffocation)
+                double x = clickedBlock.getX();
+                // Make sure entity is spawned in the middle of a block.
                 x += 0.5;
                 // Set y to the block above the clicked block.
-                double y = event.getClickedBlock().getRelative(0, 1, 0).getY();
-                double z = event.getClickedBlock().getZ();
+                double y = clickedBlock.getRelative(0, 1, 0).getY();
+                double z = clickedBlock.getZ();
                 z += 0.5;
 
                 DataStorage dataStorage = plugin.getStorage();
 
                 // Create spawn location.
-                Location spawnLoc = new Location(event.getClickedBlock().getWorld(), x, y, z);
+                Location spawnLoc = new Location(clickedBlock.getWorld(), x, y, z);
 
-                // If location is not air, spawn it where the player is. (Prevents suffocation)
+                // If location is not air, spawn it where the player is.
                 if (spawnLoc.getBlock().getType() != Material.AIR) {
-                    spawnLoc = event.getPlayer().getLocation();
+                    spawnLoc = player.getLocation();
                 }
 
-                // Get spawn egg type.
                 EntityType type = dataStorage.identifyPet(uuid.toString());
-                Entity entity = event.getClickedBlock().getWorld().spawnEntity(spawnLoc, type);
+                Entity entity = clickedBlock.getWorld().spawnEntity(spawnLoc, type);
                 if (entity == null)
                 {
-                    event.getPlayer().sendMessage(ChatColor.RED + "Cannot restore pet to this location.");
+                    player.sendMessage(ChatColor.RED + "Cannot restore pet to this location.");
                     return;
                 }
 
-                // Remove egg from hand.
-                event.getPlayer().getInventory().setItemInMainHand(new ItemStack(Material.AIR));
+                player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
 
                 dataStorage.restorePet(entity, uuid);
             } else {
-                event.getPlayer().sendMessage(ChatColor.RED + "You do not have permission to use that.");
+                player.sendMessage(ChatColor.RED + "You do not have permission to use that.");
             }
         }
     }
