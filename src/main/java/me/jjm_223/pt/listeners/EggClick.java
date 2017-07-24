@@ -66,6 +66,11 @@ public class EggClick implements Listener {
                 // Get spawn egg type.
                 EntityType type = dataStorage.identifyPet(uuid.toString());
                 Entity entity = event.getClickedBlock().getWorld().spawnEntity(spawnLoc, type);
+                if (entity == null)
+                {
+                    event.getPlayer().sendMessage(ChatColor.RED + "Cannot restore pet to this location.");
+                    return;
+                }
 
                 // Remove egg from hand.
                 event.getPlayer().getInventory().setItemInMainHand(new ItemStack(Material.AIR));
