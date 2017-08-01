@@ -35,7 +35,7 @@ public class ItemDespawn implements Listener {
 
         ItemMeta meta = itemStack.getItemMeta();
         if (meta.hasLore() && meta.getLore().size() == 2) {
-            storage.configClean(meta.getLore().get(1));
+            storage.removePet(meta.getLore().get(1));
         }
     }
 
@@ -53,7 +53,7 @@ public class ItemDespawn implements Listener {
 
         ItemMeta meta = itemStack.getItemMeta();
         if (meta.hasLore() && meta.getLore().size() == 2) {
-            storage.configClean(meta.getLore().get(1));
+            storage.removePet(meta.getLore().get(1));
         }
     }
 }

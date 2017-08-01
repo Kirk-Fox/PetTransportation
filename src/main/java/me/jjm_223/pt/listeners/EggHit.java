@@ -37,7 +37,8 @@ public class EggHit implements Listener {
         if (event.getDamager() instanceof Projectile
                 && event.getDamager().getType() == EntityType.EGG
                 && ((Projectile) event.getDamager()).getShooter() instanceof Player
-                && (event.getEntity() instanceof Wolf || event.getEntity() instanceof Ocelot || event.getEntity() instanceof AbstractHorse)
+                && (event.getEntity() instanceof Wolf || event.getEntity() instanceof Ocelot
+                || event.getEntity() instanceof AbstractHorse || event.getEntity() instanceof Parrot)
                 && ((Tameable) event.getEntity()).getOwner() != null) {
 
             Player player = (Player) ((Projectile) event.getDamager()).getShooter();
