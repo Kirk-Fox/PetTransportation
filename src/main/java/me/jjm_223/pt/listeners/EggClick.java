@@ -3,6 +3,7 @@ package me.jjm_223.pt.listeners;
 import me.jjm_223.pt.PetTransportation;
 import me.jjm_223.pt.utils.DataStorage;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -24,7 +25,7 @@ import java.util.UUID;
 
 public class EggClick implements Listener {
 
-    private PetTransportation plugin;
+    private final PetTransportation plugin;
 
     public EggClick(PetTransportation plugin) {
         this.plugin = plugin;
@@ -37,7 +38,7 @@ public class EggClick implements Listener {
         if (player.hasPermission("pt.restore")
                 && event.getItem() != null
                 && event.getAction() == Action.RIGHT_CLICK_BLOCK
-                && event.getItem().getType() == Material.MONSTER_EGG
+                && event.getItem().getType().toString().endsWith("SPAWN_EGG")
                 && event.getItem().getItemMeta().getLore() != null
                 && event.getItem().getItemMeta().getLore().size() == 2
                 && plugin.getStorage().contains(event.getItem().getItemMeta().getLore().get(1))) {
@@ -74,9 +75,13 @@ public class EggClick implements Listener {
                     return;
                 }
 
-                player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
+                boolean isSurvival = player.getGameMode() != GameMode.CREATIVE;
 
-                dataStorage.restorePet(entity, uuid);
+                if (isSurvival) {
+                    player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
+                }
+
+                dataStorage.restorePet(entity, uuid, isSurvival);
             } else {
                 player.sendMessage(ChatColor.RED + "You do not have permission to use that.");
             }

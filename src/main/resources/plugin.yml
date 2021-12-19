@@ -1,5 +1,19 @@
 name: PetTransportation
 version: ${project.version}
-author: jjm_223
+authors: [jjm_223, Kirk Fox]
 description: Allows you to throw an egg at a pet (wolf or ocelot) to keep it in your inventory.
 main: me.jjm_223.pt.PetTransportation
+api-version: 1.18
+permissions:
+  pt.*:
+    default: op
+    children:
+      pt.capture: true
+      pt.restore: true
+      pt.override: true
+  pt.capture:
+    default: true
+  pt.restore:
+    default: true
+  pt.override:
+    default: op

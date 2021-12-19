@@ -21,8 +21,8 @@ import java.util.UUID;
  */
 public class DataStorage {
 
-    private FileConfiguration config;
-    private File saveFile;
+    private final FileConfiguration config;
+    private final File saveFile;
 
     public DataStorage(JavaPlugin plugin) {
         config = new YamlConfiguration();
@@ -43,9 +43,7 @@ public class DataStorage {
 
         try {
             config.load(saveFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InvalidConfigurationException e) {
+        } catch (IOException | InvalidConfigurationException e) {
             e.printStackTrace();
         }
 
@@ -61,8 +59,8 @@ public class DataStorage {
     }
 
     public void savePet(Entity entity, UUID uuid) throws IllegalArgumentException {
-        if (entity instanceof Ocelot) {
-            saveCat((Ocelot) entity, uuid);
+        if (entity instanceof Cat) {
+            saveCat((Cat) entity, uuid);
         } else if (entity instanceof Wolf) {
             saveDog((Wolf) entity, uuid);
         } else if (entity instanceof AbstractHorse) {
@@ -70,7 +68,7 @@ public class DataStorage {
         } else if (entity instanceof Parrot) {
             saveParrot((Parrot) entity, uuid);
         } else {
-            throw new IllegalArgumentException("The entity specified was not a Wolf, Ocelot, or AbstractHorse.");
+            throw new IllegalArgumentException("The entity specified was not a Wolf, Cat, AbstractHorse, or Parrot.");
         }
 
         saveBaseData(entity, uuid);
@@ -80,7 +78,6 @@ public class DataStorage {
 
     private void saveBaseData(Entity entity, UUID uuid) {
         Validate.isTrue(entity instanceof Tameable);
-        Validate.isTrue(entity instanceof Damageable);
 
         set(uuid, "petName", entity.getCustomName());
         set(uuid, "petOwner", ((Tameable) entity).getOwner().getUniqueId().toString());
@@ -93,10 +90,10 @@ public class DataStorage {
         set(uuid, "age", wolf.getAge());
     }
 
-    private void saveCat(Ocelot ocelot, UUID uuid) {
-        set(uuid, "breed", ocelot.getCatType().toString());
-        set(uuid, "isSitting", ocelot.isSitting());
-        set(uuid, "age", ocelot.getAge());
+    private void saveCat(Cat cat, UUID uuid) {
+        set(uuid, "breed", cat.getCatType().toString());
+        set(uuid, "isSitting", cat.isSitting());
+        set(uuid, "age", cat.getAge());
     }
 
     private void saveAbstractHorse(AbstractHorse abstractHorse, UUID uuid) {
@@ -108,10 +105,14 @@ public class DataStorage {
         if (abstractHorse instanceof Horse) {
             set(uuid, "color", ((Horse) abstractHorse).getColor().toString());
             set(uuid, "style", ((Horse) abstractHorse).getStyle().toString());
-        } else if (abstractHorse instanceof Llama) {
-            set(uuid, "color", ((Llama) abstractHorse).getColor().toString());
-            set(uuid, "strength", ((Llama) abstractHorse).getStrength());
-            set(uuid, "chested", ((Llama) abstractHorse).isCarryingChest());
+        } else {
+            if (abstractHorse instanceof ChestedHorse) {
+                set(uuid, "chested", ((ChestedHorse) abstractHorse).isCarryingChest());
+            }
+            if (abstractHorse instanceof Llama) {
+                set(uuid, "color", ((Llama) abstractHorse).getColor().toString());
+                set(uuid, "strength", ((Llama) abstractHorse).getStrength());
+            }
         }
     }
 
@@ -120,13 +121,13 @@ public class DataStorage {
         set(uuid, "isSitting", parrot.isSitting());
     }
 
-    public void restorePet(Entity entity, UUID uuid) {
+    public void restorePet(Entity entity, UUID uuid, boolean remove) {
         if (entity instanceof LivingEntity) {
             ((LivingEntity) entity).setRemoveWhenFarAway(false);
         }
 
-        if (entity instanceof Ocelot) {
-            Ocelot pet = (Ocelot) entity;
+        if (entity instanceof Cat) {
+            Cat pet = (Cat) entity;
             restoreCat(pet, uuid);
         } else if (entity instanceof Wolf) {
             Wolf pet = (Wolf) entity;
@@ -137,61 +138,64 @@ public class DataStorage {
         } else if (entity instanceof Parrot) {
             restoreParrot((Parrot) entity, uuid);
         } else {
-            throw new IllegalArgumentException("The entity specified was not a Wolf, Ocelot, or AbstractHorse.");
+            throw new IllegalArgumentException("The entity specified was not a Wolf, Cat, AbstractHorse, or Parrot.");
         }
 
         // Base data restored last to avoid an error on exceeding max health for horses
         restoreBaseData(entity, uuid);
 
-        removePet(uuid.toString());
+        if (remove) removePet(uuid.toString());
     }
 
     private void restoreBaseData(Entity entity, UUID uuid) {
         Validate.isTrue(entity instanceof Tameable);
-        Validate.isTrue(entity instanceof Damageable);
 
-        entity.setCustomName(this.<String>get(uuid, "petName"));
-        ((Tameable) entity).setOwner(Bukkit.getOfflinePlayer(UUID.fromString(this.<String>get(uuid, "petOwner"))));
-        ((Damageable) entity).setHealth(this.<Double>get(uuid, "health"));
+        entity.setCustomName(this.get(uuid, "petName"));
+        ((Tameable) entity).setOwner(Bukkit.getOfflinePlayer(UUID.fromString(this.get(uuid, "petOwner"))));
+        ((Damageable) entity).setHealth(this.get(uuid, "health"));
     }
 
     private void restoreDog(Wolf wolf, UUID uuid) {
-        wolf.setCollarColor(DyeColor.valueOf(this.<String>get(uuid, "collarColor")));
-        wolf.setSitting(this.<Boolean>get(uuid, "isSitting"));
-        wolf.setAge(this.<Integer>get(uuid, "age"));
+        wolf.setCollarColor(DyeColor.valueOf(this.get(uuid, "collarColor")));
+        wolf.setSitting(this.get(uuid, "isSitting"));
+        wolf.setAge(this.get(uuid, "age"));
     }
 
-    private void restoreCat(Ocelot ocelot, UUID uuid) {
-        ocelot.setCatType(Ocelot.Type.valueOf(this.<String>get(uuid, "breed")));
-        ocelot.setSitting(this.<Boolean>get(uuid, "isSitting"));
-        ocelot.setAge(this.<Integer>get(uuid, "age"));
+    private void restoreCat(Cat cat, UUID uuid) {
+        cat.setCatType(Cat.Type.valueOf(this.<String>get(uuid, "breed")));
+        cat.setSitting(this.get(uuid, "isSitting"));
+        cat.setAge(this.get(uuid, "age"));
     }
 
     private void restoreAbstractHorse(AbstractHorse horse, UUID uuid) {
-        horse.setJumpStrength(this.<Double>get(uuid, "jump"));
-        horse.setAge(this.<Integer>get(uuid, "age"));
-        horse.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(this.<Double>get(uuid, "maxHealth"));
+        horse.setJumpStrength(this.get(uuid, "jump"));
+        horse.setAge(this.get(uuid, "age"));
+        horse.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(this.get(uuid, "maxHealth"));
         horse.setTamed(true);
-        setHorseSpeed(horse, this.<Double>get(uuid, "speed"));
+        setHorseSpeed(horse, this.get(uuid, "speed"));
 
         if (horse instanceof Horse) {
-            ((Horse) horse).setColor(Horse.Color.valueOf(this.<String>get(uuid, "color")));
-            ((Horse) horse).setStyle(Horse.Style.valueOf(this.<String>get(uuid, "style")));
-        } else if (horse instanceof Llama) {
-            ((Llama) horse).setColor(Llama.Color.valueOf(this.<String>get(uuid, "color")));
-            ((Llama) horse).setCarryingChest(this.<Boolean>get(uuid, "chested"));
+            ((Horse) horse).setColor(Horse.Color.valueOf(this.get(uuid, "color")));
+            ((Horse) horse).setStyle(Horse.Style.valueOf(this.get(uuid, "style")));
+        } else {
+            if (horse instanceof ChestedHorse) {
+                ((ChestedHorse) horse).setCarryingChest(this.get(uuid, "chested"));
+            }
+            if (horse instanceof Llama) {
+                ((Llama) horse).setColor(Llama.Color.valueOf(this.get(uuid, "color")));
 
-            int strength = this.<Integer>get(uuid, "strength");
-            // This was implemented later on- config may not have an option set.
-            if (strength > 0) {
-                ((Llama) horse).setStrength(strength);
+                int strength = this.get(uuid, "strength");
+                // This was implemented later on- config may not have an option set.
+                if (strength > 0) {
+                    ((Llama) horse).setStrength(strength);
+                }
             }
         }
     }
 
     private void restoreParrot(Parrot parrot, UUID uuid) {
-        parrot.setVariant(Parrot.Variant.valueOf(this.<String>get(uuid, "variant")));
-        parrot.setSitting(this.<Boolean>get(uuid, "isSitting"));
+        parrot.setVariant(Parrot.Variant.valueOf(this.get(uuid, "variant")));
+        parrot.setSitting(this.get(uuid, "isSitting"));
     }
 
     public EntityType identifyPet(String uuid) {
@@ -199,32 +203,7 @@ public class DataStorage {
         if (section == null)
             throw new IllegalArgumentException("No such UUID exists in the configuration.");
 
-        if (section.contains("entitytype"))
-            return EntityType.valueOf(section.getString("entitytype"));
-
-        if (section.contains("variant")) {
-            Horse.Variant variant = Horse.Variant.valueOf(section.getString("variant"));
-            switch (variant) {
-                case HORSE:
-                    return EntityType.HORSE;
-                case UNDEAD_HORSE:
-                    return EntityType.ZOMBIE_HORSE;
-                case SKELETON_HORSE:
-                    return EntityType.SKELETON_HORSE;
-                case DONKEY:
-                    return EntityType.DONKEY;
-                case MULE:
-                    return EntityType.MULE;
-            }
-
-            return EntityType.HORSE;
-        } else if (section.contains("breed")) {
-            return EntityType.OCELOT;
-        } else if (section.contains("collarColor")) {
-            return EntityType.WOLF;
-        } else {
-            return null;
-        }
+        return EntityType.valueOf(section.getString("entitytype"));
     }
 
     public void removePet(String uuid) {

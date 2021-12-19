@@ -26,6 +26,8 @@ public class EggHit implements Listener {
 
     private PetTransportation plugin;
 
+    //TODO prevent baby chicken spawns when capturing pets
+
     public EggHit(PetTransportation plugin) {
         this.plugin = plugin;
     }
@@ -55,7 +57,7 @@ public class EggHit implements Listener {
                 UUID storageID = UUID.randomUUID();
 
                 // Create a new spawn egg. (The Bukkit API does not allow changing the type of a spawn egg as of 1.9.)
-                ItemStack item = new ItemStack(Material.MONSTER_EGG, 1);
+                ItemStack item = new ItemStack(Material.getMaterial(event.getEntityType().toString()+"_SPAWN_EGG"), 1);
 
                 List<String> lore = new ArrayList<String>();
                 String animalName;
