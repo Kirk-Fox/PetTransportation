@@ -22,8 +22,9 @@ public class ConfigHandler {
     }
 
     public boolean canCapture(Mob m) {
+        if (blacklist.contains(m.getType())) return false;
         if (onlyPets) return m instanceof Tameable && ((Tameable) m).isTamed();
         if (!captureMonsters) return !(m instanceof Monster);
-        return !(blacklist.contains(m.getType()) || m instanceof Axolotl || m instanceof Fish);
+        return !(m instanceof Axolotl || m instanceof Fish);
     }
 }
