@@ -3,15 +3,13 @@ package me.jjm_223.pt.listeners;
 import me.jjm_223.pt.PetTransportation;
 import me.jjm_223.pt.utils.DataStorage;
 import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -31,7 +29,7 @@ public class EggClick implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = true)
     public void onInteract(PlayerInteractEvent event) {
         final Player player = event.getPlayer();
 
@@ -39,6 +37,7 @@ public class EggClick implements Listener {
                 && event.getItem() != null
                 && event.getAction() == Action.RIGHT_CLICK_BLOCK
                 && event.getItem().getType().toString().endsWith("SPAWN_EGG")
+                && event.getItem().getItemMeta() != null
                 && event.getItem().getItemMeta().getLore() != null
                 && event.getItem().getItemMeta().getLore().size() == 2
                 && plugin.getStorage().contains(event.getItem().getItemMeta().getLore().get(1))) {
@@ -68,20 +67,16 @@ public class EggClick implements Listener {
                 }
 
                 EntityType type = dataStorage.identifyPet(uuid.toString());
-                Entity entity = clickedBlock.getWorld().spawnEntity(spawnLoc, type);
-                if (entity == null)
+                Mob mob = (Mob) clickedBlock.getWorld().spawnEntity(spawnLoc, type);
+                if (mob == null)
                 {
                     player.sendMessage(ChatColor.RED + "Cannot restore pet to this location.");
                     return;
                 }
 
-                boolean isSurvival = player.getGameMode() != GameMode.CREATIVE;
+                player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
 
-                if (isSurvival) {
-                    player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
-                }
-
-                dataStorage.restorePet(entity, uuid, isSurvival);
+                dataStorage.restorePet(mob, uuid);
             } else {
                 player.sendMessage(ChatColor.RED + "You do not have permission to use that.");
             }

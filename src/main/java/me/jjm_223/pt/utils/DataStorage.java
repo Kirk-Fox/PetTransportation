@@ -1,9 +1,9 @@
 package me.jjm_223.pt.utils;
 
-import org.apache.commons.lang.Validate;
-import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
+import org.bukkit.Server;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -14,6 +14,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -21,12 +23,15 @@ import java.util.UUID;
  */
 public class DataStorage {
 
+    private final Server server;
+
     private final FileConfiguration config;
     private final File saveFile;
 
     public DataStorage(JavaPlugin plugin) {
-        config = new YamlConfiguration();
+        server = plugin.getServer();
 
+        config = new YamlConfiguration();
         saveFile = new File(plugin.getDataFolder() + File.separator + "pets.yml");
 
         if (!saveFile.exists()) {
@@ -58,144 +63,225 @@ public class DataStorage {
         }.runTaskTimerAsynchronously(plugin, 0L, 200L);
     }
 
-    public void savePet(Entity entity, UUID uuid) throws IllegalArgumentException {
-        if (entity instanceof Cat) {
-            saveCat((Cat) entity, uuid);
-        } else if (entity instanceof Wolf) {
-            saveDog((Wolf) entity, uuid);
-        } else if (entity instanceof AbstractHorse) {
-            saveAbstractHorse((AbstractHorse) entity, uuid);
-        } else if (entity instanceof Parrot) {
-            saveParrot((Parrot) entity, uuid);
-        } else {
-            throw new IllegalArgumentException("The entity specified was not a Wolf, Cat, AbstractHorse, or Parrot.");
+    public void savePet(Mob mob, UUID uuid) {
+        Map<String, Object> mobData = new HashMap<>();
+
+        mobData.put("entityType", mob.getType().name());
+        mobData.put("name", mob.getCustomName());
+        mobData.put("health", mob.getHealth());
+
+        if (mob instanceof Tameable) {
+            Tameable t = (Tameable) mob;
+            mobData.put("isTamed", t.isTamed());
+            if (t.getOwner() != null) mobData.put("owner", t.getOwner().getUniqueId().toString());
         }
 
-        saveBaseData(entity, uuid);
+        if (mob instanceof Ageable) mobData.put("age", ((Ageable) mob).getAge());
+        if (mob instanceof Sittable) mobData.put("isSitting", ((Sittable) mob).isSitting());
+        if (mob instanceof Steerable) mobData.put("hasSaddle", ((Steerable) mob).hasSaddle());
 
-        set(uuid, "entitytype", entity.getType().name());
-    }
-
-    private void saveBaseData(Entity entity, UUID uuid) {
-        Validate.isTrue(entity instanceof Tameable);
-
-        set(uuid, "petName", entity.getCustomName());
-        set(uuid, "petOwner", ((Tameable) entity).getOwner().getUniqueId().toString());
-        set(uuid, "health", ((Damageable) entity).getHealth());
-    }
-
-    private void saveDog(Wolf wolf, UUID uuid) {
-        set(uuid, "collarColor", wolf.getCollarColor().toString());
-        set(uuid, "isSitting", wolf.isSitting());
-        set(uuid, "age", wolf.getAge());
-    }
-
-    private void saveCat(Cat cat, UUID uuid) {
-        set(uuid, "breed", cat.getCatType().toString());
-        set(uuid, "isSitting", cat.isSitting());
-        set(uuid, "age", cat.getAge());
-    }
-
-    private void saveAbstractHorse(AbstractHorse abstractHorse, UUID uuid) {
-        set(uuid, "jump", abstractHorse.getJumpStrength());
-        set(uuid, "age", abstractHorse.getAge());
-        set(uuid, "maxHealth", abstractHorse.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
-        set(uuid, "speed", getHorseSpeed(abstractHorse));
-
-        if (abstractHorse instanceof Horse) {
-            set(uuid, "color", ((Horse) abstractHorse).getColor().toString());
-            set(uuid, "style", ((Horse) abstractHorse).getStyle().toString());
-        } else {
-            if (abstractHorse instanceof ChestedHorse) {
-                set(uuid, "chested", ((ChestedHorse) abstractHorse).isCarryingChest());
-            }
-            if (abstractHorse instanceof Llama) {
-                set(uuid, "color", ((Llama) abstractHorse).getColor().toString());
-                set(uuid, "strength", ((Llama) abstractHorse).getStrength());
-            }
-        }
-    }
-
-    private void saveParrot(Parrot parrot, UUID uuid) {
-        set(uuid, "variant", parrot.getVariant().toString());
-        set(uuid, "isSitting", parrot.isSitting());
-    }
-
-    public void restorePet(Entity entity, UUID uuid, boolean remove) {
-        if (entity instanceof LivingEntity) {
-            ((LivingEntity) entity).setRemoveWhenFarAway(false);
+        if (mob instanceof AbstractHorse) {
+            AbstractHorse h = (AbstractHorse) mob;
+            mobData.put("jumpStrength", h.getJumpStrength());
+            mobData.put("maxHealth", h.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
+            mobData.put("speed", getHorseSpeed(h));
+            if (h instanceof ChestedHorse) mobData.put("isCarryingChest", ((ChestedHorse) h).isCarryingChest());
         }
 
-        if (entity instanceof Cat) {
-            Cat pet = (Cat) entity;
-            restoreCat(pet, uuid);
-        } else if (entity instanceof Wolf) {
-            Wolf pet = (Wolf) entity;
-            restoreDog(pet, uuid);
-        } else if (entity instanceof AbstractHorse) {
-            AbstractHorse pet = (AbstractHorse) entity;
-            restoreAbstractHorse(pet, uuid);
-        } else if (entity instanceof Parrot) {
-            restoreParrot((Parrot) entity, uuid);
-        } else {
-            throw new IllegalArgumentException("The entity specified was not a Wolf, Cat, AbstractHorse, or Parrot.");
-        }
-
-        // Base data restored last to avoid an error on exceeding max health for horses
-        restoreBaseData(entity, uuid);
-
-        if (remove) removePet(uuid.toString());
-    }
-
-    private void restoreBaseData(Entity entity, UUID uuid) {
-        Validate.isTrue(entity instanceof Tameable);
-
-        entity.setCustomName(this.get(uuid, "petName"));
-        ((Tameable) entity).setOwner(Bukkit.getOfflinePlayer(UUID.fromString(this.get(uuid, "petOwner"))));
-        ((Damageable) entity).setHealth(this.get(uuid, "health"));
-    }
-
-    private void restoreDog(Wolf wolf, UUID uuid) {
-        wolf.setCollarColor(DyeColor.valueOf(this.get(uuid, "collarColor")));
-        wolf.setSitting(this.get(uuid, "isSitting"));
-        wolf.setAge(this.get(uuid, "age"));
-    }
-
-    private void restoreCat(Cat cat, UUID uuid) {
-        cat.setCatType(Cat.Type.valueOf(this.<String>get(uuid, "breed")));
-        cat.setSitting(this.get(uuid, "isSitting"));
-        cat.setAge(this.get(uuid, "age"));
-    }
-
-    private void restoreAbstractHorse(AbstractHorse horse, UUID uuid) {
-        horse.setJumpStrength(this.get(uuid, "jump"));
-        horse.setAge(this.get(uuid, "age"));
-        horse.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(this.get(uuid, "maxHealth"));
-        horse.setTamed(true);
-        setHorseSpeed(horse, this.get(uuid, "speed"));
-
-        if (horse instanceof Horse) {
-            ((Horse) horse).setColor(Horse.Color.valueOf(this.get(uuid, "color")));
-            ((Horse) horse).setStyle(Horse.Style.valueOf(this.get(uuid, "style")));
-        } else {
-            if (horse instanceof ChestedHorse) {
-                ((ChestedHorse) horse).setCarryingChest(this.get(uuid, "chested"));
-            }
-            if (horse instanceof Llama) {
-                ((Llama) horse).setColor(Llama.Color.valueOf(this.get(uuid, "color")));
-
-                int strength = this.get(uuid, "strength");
-                // This was implemented later on- config may not have an option set.
-                if (strength > 0) {
-                    ((Llama) horse).setStrength(strength);
+        switch (mob.getType()) {
+            case WOLF:
+                mobData.put("collarColor", ((Wolf) mob).getCollarColor().name());
+                break;
+            case CAT:
+                mobData.put("breed", ((Cat) mob).getCatType().name());
+                break;
+            case HORSE:
+                mobData.put("color", ((Horse) mob).getColor().name());
+                mobData.put("style", ((Horse) mob).getStyle().name());
+                break;
+            case LLAMA:
+                mobData.put("color", ((Llama) mob).getColor().name());
+                mobData.put("strength", ((Llama) mob).getStrength());
+                break;
+            case PARROT:
+                mobData.put("variant", ((Parrot) mob).getVariant().name());
+                break;
+            case BEE:
+                Bee b = (Bee) mob;
+                mobData.put("anger", b.getAnger());
+                mobData.put("cannotEnterHiveTicks", b.getCannotEnterHiveTicks());
+                mobData.put("hasNectar", b.hasNectar());
+                mobData.put("hasStung", b.hasStung());
+                break;
+            case CREEPER:
+                mobData.put("isPowered", ((Creeper) mob).isPowered());
+                break;
+            case ENDERMAN:
+                BlockData bd = ((Enderman) mob).getCarriedBlock();
+                if (bd != null) mobData.put("carriedBlock", bd.getAsString());
+                break;
+            case FOX:
+                Fox f = (Fox) mob;
+                AnimalTamer tp1 = f.getFirstTrustedPlayer();
+                AnimalTamer tp2 = f.getSecondTrustedPlayer();
+                if (tp1 != null) {
+                    mobData.put("firstTrustedPlayer", tp1.getUniqueId().toString());
+                    if (tp2 != null) mobData.put("secondTrustedPlayer", tp2.getUniqueId().toString());
                 }
-            }
+                mobData.put("foxType", f.getFoxType().name());
+                mobData.put("isCrouching", f.isCrouching());
+                break;
+            case GLOW_SQUID:
+                mobData.put("darkTicksRemaining", ((GlowSquid) mob).getDarkTicksRemaining());
+                break;
+            case GOAT:
+                mobData.put("isScreaming", ((Goat) mob).isScreaming());
+                break;
+            case IRON_GOLEM:
+                mobData.put("isPlayerCreated", ((IronGolem) mob).isPlayerCreated());
+                break;
+            case MUSHROOM_COW:
+                mobData.put("variant", ((MushroomCow) mob).getVariant().name());
+                break;
+            case OCELOT:
+                mobData.put("isTrusting", ((Ocelot) mob).isTrusting());
+                break;
+            case PANDA:
+                mobData.put("mainGene", ((Panda) mob).getMainGene().name());
+                mobData.put("hiddenGene", ((Panda) mob).getHiddenGene().name());
+                break;
+            case ZOMBIFIED_PIGLIN:
+                mobData.put("anger", ((PigZombie) mob).getAnger());
+                break;
+            case PUFFERFISH:
+                mobData.put("puffState", ((PufferFish) mob).getPuffState());
+                break;
+            case RABBIT:
+                mobData.put("rabbitType", ((Rabbit) mob).getRabbitType().name());
+                break;
+            case SHEEP:
+                mobData.put("isSheared", ((Sheep) mob).isSheared());
+                break;
+            case SLIME:
+                mobData.put("size", ((Slime) mob).getSize());
+                break;
+            case SNOWMAN:
+                mobData.put("isDerp", ((Snowman) mob).isDerp());
+                break;
         }
+
+        set(uuid, mobData);
     }
 
-    private void restoreParrot(Parrot parrot, UUID uuid) {
-        parrot.setVariant(Parrot.Variant.valueOf(this.get(uuid, "variant")));
-        parrot.setSitting(this.get(uuid, "isSitting"));
+    public void restorePet(Mob mob, UUID uuid) {
+        Map<String, Object> mobData = get(uuid);
+
+        mob.setCustomName((String) mobData.get("name"));
+
+        if (mob instanceof Tameable) {
+            Tameable t = (Tameable) mob;
+            t.setTamed((Boolean) mobData.get("isTamed"));
+            String owner = (String) mobData.get("owner");
+            if (owner != null) t.setOwner(server.getOfflinePlayer(UUID.fromString(owner)));
+        }
+
+        if (mob instanceof Ageable) ((Ageable) mob).setAge((Integer) mobData.get("age"));
+        if (mob instanceof Sittable) ((Sittable) mob).setSitting((Boolean) mobData.get("isSitting"));
+        if (mob instanceof Steerable) ((Steerable) mob).setSaddle((Boolean) mobData.get("hasSaddle"));
+
+        if (mob instanceof AbstractHorse) {
+            AbstractHorse h = (AbstractHorse) mob;
+            h.setJumpStrength((Double) mobData.get("jumpStrength"));
+            h.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue((Double) mobData.get("maxHealth"));
+            setHorseSpeed(h, (Double) mobData.get("speed"));
+            if (h instanceof ChestedHorse) ((ChestedHorse) h).setCarryingChest((Boolean) mobData.get("isCarryingChest"));
+        }
+
+        mob.setHealth((Double) mobData.get("health"));
+
+        switch (mob.getType()) {
+            case WOLF:
+                ((Wolf) mob).setCollarColor(DyeColor.valueOf((String) mobData.get("collarColor")));
+                break;
+            case CAT:
+                ((Cat) mob).setCatType(Cat.Type.valueOf((String) mobData.get("breed")));
+                break;
+            case HORSE:
+                ((Horse) mob).setColor(Horse.Color.valueOf((String) mobData.get("color")));
+                ((Horse) mob).setStyle(Horse.Style.valueOf((String) mobData.get("style")));
+                break;
+            case LLAMA:
+                ((Llama) mob).setColor(Llama.Color.valueOf((String) mobData.get("color")));
+                ((Llama) mob).setStrength((Integer) mobData.get("strength"));
+                break;
+            case PARROT:
+                ((Parrot) mob).setVariant(Parrot.Variant.valueOf((String) mobData.get("variant")));
+                break;
+            case BEE:
+                Bee b = (Bee) mob;
+                b.setAnger((Integer) mobData.get("anger"));
+                b.setCannotEnterHiveTicks((Integer) mobData.get("cannotEnterHiveTicks"));
+                b.setHasNectar((Boolean) mobData.get("hasNectar"));
+                b.setHasStung((Boolean) mobData.get("hasStung"));
+                break;
+            case CREEPER:
+                ((Creeper) mob).setPowered((Boolean) mobData.get("isPowered"));
+                break;
+            case ENDERMAN:
+                String bd = (String) mobData.get("carriedBlock");
+                if (bd != null) ((Enderman) mob).setCarriedBlock(server.createBlockData(bd));
+                break;
+            case FOX:
+                Fox f = (Fox) mob;
+                String tp1 = (String) mobData.get("firstTrustedPlayer");
+                String tp2 = (String) mobData.get("secondTrustedPlayer");
+                if (tp1 != null) {
+                    f.setFirstTrustedPlayer(server.getOfflinePlayer(UUID.fromString(tp1)));
+                    if (tp2 != null) f.setSecondTrustedPlayer(server.getOfflinePlayer(UUID.fromString(tp2)));
+                }
+                f.setFoxType(Fox.Type.valueOf((String) mobData.get("foxType")));
+                f.setCrouching((Boolean) mobData.get("isCrouching"));
+                break;
+            case GLOW_SQUID:
+                ((GlowSquid) mob).setDarkTicksRemaining((Integer) mobData.get("darkTicksRemaining"));
+                break;
+            case GOAT:
+                ((Goat) mob).setScreaming((Boolean) mobData.get("isScreaming"));
+                break;
+            case IRON_GOLEM:
+                ((IronGolem) mob).setPlayerCreated((Boolean) mobData.get("isPlayerCreated"));
+                break;
+            case MUSHROOM_COW:
+                ((MushroomCow) mob).setVariant(MushroomCow.Variant.valueOf((String) mobData.get("variant")));
+                break;
+            case OCELOT:
+                ((Ocelot) mob).setTrusting((Boolean) mobData.get("isTrusting"));
+                break;
+            case PANDA:
+                ((Panda) mob).setMainGene(Panda.Gene.valueOf((String) mobData.get("mainGene")));
+                ((Panda) mob).setHiddenGene(Panda.Gene.valueOf((String) mobData.get("hiddenGene")));
+                break;
+            case ZOMBIFIED_PIGLIN:
+                ((PigZombie) mob).setAnger((Integer) mobData.get("anger"));
+                break;
+            case PUFFERFISH:
+                ((PufferFish) mob).setPuffState((Integer) mobData.get("puffState"));
+                break;
+            case RABBIT:
+                ((Rabbit) mob).setRabbitType(Rabbit.Type.valueOf((String) mobData.get("rabbitType")));
+                break;
+            case SHEEP:
+                ((Sheep) mob).setSheared((Boolean) mobData.get("isSheared"));
+                break;
+            case SLIME:
+                ((Slime) mob).setSize((Integer) mobData.get("size"));
+                break;
+            case SNOWMAN:
+                ((Snowman) mob).setDerp((Boolean) mobData.get("isDerp"));
+                break;
+        }
+
+        removePet(uuid.toString());
     }
 
     public EntityType identifyPet(String uuid) {
@@ -203,7 +289,7 @@ public class DataStorage {
         if (section == null)
             throw new IllegalArgumentException("No such UUID exists in the configuration.");
 
-        return EntityType.valueOf(section.getString("entitytype"));
+        return EntityType.valueOf(section.getString("entityType"));
     }
 
     public void removePet(String uuid) {
@@ -220,14 +306,14 @@ public class DataStorage {
         horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue(value);
     }
 
-    private void set(UUID uuid, String label, Object value)
+    private void set(UUID uuid, Map<String, Object> mobData)
     {
-        config.set("pets." + uuid.toString() + "." + label, value);
+        mobData.forEach((l, v) -> config.set("pets." + uuid.toString() + "." + l, v));
     }
 
-    private <T> T get(UUID uuid, String label)
+    private Map<String, Object> get(UUID uuid)
     {
-        return (T) config.get("pets." + uuid.toString() + "." + label);
+        return config.getConfigurationSection("pets." + uuid.toString()).getValues(false);
     }
 
     public boolean contains(UUID uuid) {

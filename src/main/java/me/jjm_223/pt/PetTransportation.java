@@ -1,9 +1,7 @@
 package me.jjm_223.pt;
 
-import me.jjm_223.pt.listeners.EggClick;
-import me.jjm_223.pt.listeners.EggHit;
-import me.jjm_223.pt.listeners.ItemDespawn;
-import me.jjm_223.pt.utils.DataStorage;
+import me.jjm_223.pt.listeners.*;
+import me.jjm_223.pt.utils.*;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -15,10 +13,12 @@ import java.io.IOException;
 public class PetTransportation extends JavaPlugin {
 
     private DataStorage storage;
+    private ConfigHandler configHandler;
 
     @Override
     public void onEnable() {
         storage = new DataStorage(this);
+        configHandler = new ConfigHandler(this);
 
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(new EggHit(this), this);
@@ -38,5 +38,9 @@ public class PetTransportation extends JavaPlugin {
     public DataStorage getStorage()
     {
         return this.storage;
+    }
+
+    public ConfigHandler getConfigHandler() {
+        return this.configHandler;
     }
 }
