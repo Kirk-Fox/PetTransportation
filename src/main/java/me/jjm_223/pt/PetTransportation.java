@@ -2,6 +2,7 @@ package me.jjm_223.pt;
 
 import me.jjm_223.pt.listeners.*;
 import me.jjm_223.pt.utils.*;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -15,6 +16,8 @@ public class PetTransportation extends JavaPlugin {
     private DataStorage storage;
     private ConfigHandler configHandler;
 
+    private final int BSTATS_ID = 14000;
+
     @Override
     public void onEnable() {
         storage = new DataStorage(this);
@@ -24,6 +27,8 @@ public class PetTransportation extends JavaPlugin {
         pm.registerEvents(new EggHit(this), this);
         pm.registerEvents(new EggClick(this), this);
         pm.registerEvents(new ItemDespawn(this), this);
+
+        new Metrics(this, BSTATS_ID);
     }
 
     @Override
