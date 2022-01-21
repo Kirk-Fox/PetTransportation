@@ -11,6 +11,7 @@ public class ConfigHandler {
 
     private final boolean onlyPets;
     private final boolean captureMonsters;
+    private final boolean whitelist;
     private final Set<EntityType> blacklist = new HashSet<>();
 
     public ConfigHandler(JavaPlugin plugin) {
@@ -18,12 +19,14 @@ public class ConfigHandler {
         ConfigurationSection config = plugin.getConfig();
         onlyPets = config.getBoolean("capture-pets-only");
         captureMonsters = config.getBoolean("capture-monsters");
+        whitelist = config.getBoolean("use-blacklist-as-whitelist");
         config.getStringList("mob-blacklist").forEach(m -> blacklist.add(EntityType.valueOf(m.toUpperCase())));
     }
 
     public boolean canCapture(Mob m) {
-        if (blacklist.contains(m.getType())) return false;
-        if (onlyPets) return m instanceof Tameable && ((Tameable) m).isTamed();
+        if (blacklist.contains(m.getType()) ^ whitelist) return false;
+        if (onlyPets) return (m instanceof Tameable && ((Tameable) m).isTamed())
+                || (m instanceof Fox && ((Fox) m).getFirstTrustedPlayer() != null);
         if (!captureMonsters) return !(m instanceof Monster);
         return !(m instanceof Axolotl || m instanceof Fish);
     }

@@ -21,6 +21,7 @@ import java.util.UUID;
 /**
  * Class for saving data to a config file.
  */
+@SuppressWarnings("ConstantConditions")
 public class DataStorage {
 
     private final Server server;
@@ -28,6 +29,7 @@ public class DataStorage {
     private final FileConfiguration config;
     private final File saveFile;
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public DataStorage(JavaPlugin plugin) {
         server = plugin.getServer();
 

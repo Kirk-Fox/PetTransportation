@@ -3,7 +3,6 @@ package me.jjm_223.pt.listeners;
 import me.jjm_223.pt.PetTransportation;
 import me.jjm_223.pt.utils.DataStorage;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -23,7 +22,7 @@ import java.util.UUID;
 
 public class EggHit implements Listener {
 
-    private PetTransportation plugin;
+    private final PetTransportation plugin;
 
     //TODO prevent baby chicken spawns when capturing pets
 
@@ -45,9 +44,18 @@ public class EggHit implements Listener {
 
             // Make sure that either the shooter is the owner of the pet, or the player has permission to override this, and the player has permission to capture mobs.
             if (player.hasPermission("pt.capture")) {
-                if ((!(mob instanceof Tameable) || ((Tameable) mob).getOwner() == null
-                        || ((Tameable) mob).getOwner().getUniqueId().equals(player.getUniqueId())
-                        || player.hasPermission("pt.override"))) {
+                boolean canPlayerCapture = true;
+                if (mob instanceof Tameable) {
+                    Tameable t = (Tameable) mob;
+                    canPlayerCapture = t.getOwner() == null || t.getOwner().getUniqueId().equals(player.getUniqueId());
+                } else if (mob instanceof Fox) {
+                    Fox f = (Fox) mob;
+                    canPlayerCapture = f.getFirstTrustedPlayer() == null
+                            || f.getFirstTrustedPlayer().getUniqueId().equals(player.getUniqueId())
+                            || (f.getSecondTrustedPlayer() != null
+                            && f.getSecondTrustedPlayer().getUniqueId().equals(player.getUniqueId()));
+                }
+                if (canPlayerCapture || player.hasPermission("pt.override")) {
                     if (plugin.getConfigHandler().canCapture(mob)) {
                         // Cancel the event, we don't want them to get hurt, do we? (I hope you didn't answer yes D:)
                         event.setCancelled(true);
@@ -57,11 +65,11 @@ public class EggHit implements Listener {
                         UUID storageID = UUID.randomUUID();
 
                         // Create a new spawn egg. (The Bukkit API does not allow changing the type of a spawn egg as of 1.9.)
-                        String itemName = event.getEntityType().toString()+"_SPAWN_EGG";
+                        String itemName = event.getEntityType() +"_SPAWN_EGG";
                         Material spawnEgg = Material.getMaterial(itemName);
                         ItemStack item = new ItemStack((spawnEgg != null) ? spawnEgg : Material.WOLF_SPAWN_EGG, 1);
 
-                        List<String> lore = new ArrayList<String>();
+                        List<String> lore = new ArrayList<>();
                         String animalName;
                         if (event.getEntityType() == EntityType.WOLF) {
                             animalName = "Dog";
@@ -74,16 +82,24 @@ public class EggHit implements Listener {
                         // Add lore to metadata.
                         ItemMeta meta = item.getItemMeta();
                         meta.setLore(lore);
-                        if (spawnEgg == null) meta.setDisplayName("\u00A7f"+formatName(itemName));
+
+                        if (spawnEgg == null) {
+                            StringBuilder eggName = new StringBuilder();
+                            String[] words = itemName.split("_");
+                            for (String s : words) {
+                                eggName.append(" ").append(s.charAt(0)).append(s.substring(1).toLowerCase());
+                            }
+                            meta.setDisplayName("\u00A7f"+eggName.substring(1));
+                        }
+
                         item.setItemMeta(meta);
 
                         // Drop inventory contents of horse.
                         if (mob instanceof InventoryHolder) {
-                            Location loc = mob.getLocation();
                             InventoryHolder invHolder = (InventoryHolder) mob;
                             for (ItemStack inventoryItem : invHolder.getInventory().getContents()) {
                                 if (inventoryItem != null) {
-                                    loc.getWorld().dropItemNaturally(loc, inventoryItem);
+                                    mob.getWorld().dropItemNaturally(mob.getLocation(), inventoryItem);
                                 }
                             }
                         }
@@ -109,14 +125,5 @@ public class EggHit implements Listener {
                 player.sendMessage(ChatColor.RED + "You don't have permission to use PetTransportation!");
             }
         }
-    }
-
-    private String formatName(String name) {
-        StringBuilder result = new StringBuilder();
-        String[] words = name.split("_");
-        for (String s : words) {
-            result.append(" ").append(s.charAt(0)).append(s.substring(1).toLowerCase());
-        }
-        return result.substring(1);
     }
 }

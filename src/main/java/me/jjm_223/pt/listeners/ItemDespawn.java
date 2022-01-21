@@ -16,10 +16,10 @@ import org.bukkit.inventory.meta.ItemMeta;
  * Helps config cleanup by keeping track of despawns and removals.
  */
 
-@SuppressWarnings("unused")
+@SuppressWarnings("ConstantConditions")
 public class ItemDespawn implements Listener {
 
-    private DataStorage storage;
+    private final DataStorage storage;
 
     public ItemDespawn(PetTransportation plugin) {
         storage = plugin.getStorage();
@@ -29,7 +29,7 @@ public class ItemDespawn implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDespawn(ItemDespawnEvent event) {
         ItemStack itemStack = event.getEntity().getItemStack();
-        if (itemStack == null || !itemStack.hasItemMeta()) {
+        if (!itemStack.hasItemMeta()) {
             return;
         }
 
@@ -47,7 +47,7 @@ public class ItemDespawn implements Listener {
         }
 
         ItemStack itemStack = ((Item) event.getEntity()).getItemStack();
-        if (itemStack == null || !itemStack.hasItemMeta()) {
+        if (!itemStack.hasItemMeta()) {
             return;
         }
 

@@ -48,6 +48,7 @@ public class EggClick implements Listener {
                 UUID uuid = UUID.fromString(uuidString);
                 final Block clickedBlock = event.getClickedBlock();
 
+                assert clickedBlock != null;
                 double x = clickedBlock.getX();
                 // Make sure entity is spawned in the middle of a block.
                 x += 0.5;
@@ -68,11 +69,6 @@ public class EggClick implements Listener {
 
                 EntityType type = dataStorage.identifyPet(uuid.toString());
                 Mob mob = (Mob) clickedBlock.getWorld().spawnEntity(spawnLoc, type);
-                if (mob == null)
-                {
-                    player.sendMessage(ChatColor.RED + "Cannot restore pet to this location.");
-                    return;
-                }
 
                 player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
 

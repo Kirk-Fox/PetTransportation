@@ -16,7 +16,7 @@ public class PetTransportation extends JavaPlugin {
     private DataStorage storage;
     private ConfigHandler configHandler;
 
-    private final int BSTATS_ID = 14000;
+    private static final int BSTATS_ID = 14000;
 
     @Override
     public void onEnable() {

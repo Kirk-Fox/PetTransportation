@@ -4,7 +4,9 @@ capture-pets-only: true
 # Set to true to be able to capture hostile mobs such as zombies, spiders, etc.
 capture-monsters: false
 
-# List of mobs that cannot be captured
+use-blacklist-as-whitelist: false
+# If above is false, list of mobs that cannot be captured
+# If above is true, list of only mobs that CAN be captured
 mob-blacklist:
   - ender_dragon
   - wither
