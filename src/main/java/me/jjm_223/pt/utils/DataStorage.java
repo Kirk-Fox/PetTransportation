@@ -9,14 +9,15 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Merchant;
+import org.bukkit.inventory.MerchantRecipe;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Class for saving data to a config file.
@@ -90,6 +91,13 @@ public class DataStorage {
             if (h instanceof ChestedHorse) mobData.put("isCarryingChest", ((ChestedHorse) h).isCarryingChest());
         }
 
+        if (mob instanceof Llama) {
+            mobData.put("color", ((Llama) mob).getColor().name());
+            mobData.put("strength", ((Llama) mob).getStrength());
+        }
+
+        if (mob instanceof Slime) mobData.put("size", ((Slime) mob).getSize());
+
         switch (mob.getType()) {
             case WOLF:
                 mobData.put("collarColor", ((Wolf) mob).getCollarColor().name());
@@ -100,10 +108,6 @@ public class DataStorage {
             case HORSE:
                 mobData.put("color", ((Horse) mob).getColor().name());
                 mobData.put("style", ((Horse) mob).getStyle().name());
-                break;
-            case LLAMA:
-                mobData.put("color", ((Llama) mob).getColor().name());
-                mobData.put("strength", ((Llama) mob).getStrength());
                 break;
             case PARROT:
                 mobData.put("variant", ((Parrot) mob).getVariant().name());
@@ -164,12 +168,42 @@ public class DataStorage {
             case SHEEP:
                 mobData.put("isSheared", ((Sheep) mob).isSheared());
                 break;
-            case SLIME:
-                mobData.put("size", ((Slime) mob).getSize());
-                break;
             case SNOWMAN:
                 mobData.put("isDerp", ((Snowman) mob).isDerp());
                 break;
+            case VILLAGER:
+                Villager v = (Villager) mob;
+                mobData.put("profession", v.getProfession().name());
+                mobData.put("type", v.getVillagerType().name());
+                mobData.put("level", v.getVillagerLevel());
+                mobData.put("experience", v.getVillagerExperience());
+                break;
+            case ZOMBIE_VILLAGER:
+                ZombieVillager z = (ZombieVillager) mob;
+                mobData.put("conversionPlayer", z.getConversionPlayer().getUniqueId().toString());
+                mobData.put("conversionTime", z.getConversionTime());
+                mobData.put("profession", z.getVillagerProfession().name());
+                mobData.put("type", z.getVillagerType().name());
+                break;
+        }
+
+        if (mob instanceof Merchant) {
+            List<MerchantRecipe> trades = ((Merchant) mob).getRecipes();
+            int i = 0;
+            for (MerchantRecipe t : trades) {
+                String path = "trades." + i + ".";
+                mobData.put(path + "result", t.getResult());
+                mobData.put(path + "uses", t.getUses());
+                mobData.put(path + "maxUses", t.getMaxUses());
+                mobData.put(path + "experienceReward", t.hasExperienceReward());
+                mobData.put(path + "villagerExperience", t.getVillagerExperience());
+                mobData.put(path + "priceMultiplier", t.getPriceMultiplier());
+                mobData.put(path + "demand", t.getDemand());
+                mobData.put(path + "specialPrice", t.getSpecialPrice());
+                List<ItemStack> ingredients = t.getIngredients();
+                for (int j = 0; j < ingredients.size(); j++) mobData.put(path + "ingredients." + j, ingredients.get(j));
+                i++;
+            }
         }
 
         set(uuid, mobData);
@@ -199,6 +233,13 @@ public class DataStorage {
             if (h instanceof ChestedHorse) ((ChestedHorse) h).setCarryingChest((Boolean) mobData.get("isCarryingChest"));
         }
 
+        if (mob instanceof Llama) {
+            ((Llama) mob).setColor(Llama.Color.valueOf((String) mobData.get("color")));
+            ((Llama) mob).setStrength((Integer) mobData.get("strength"));
+        }
+
+        if (mob instanceof Slime) ((Slime) mob).setSize((Integer) mobData.get("size"));
+
         mob.setHealth((Double) mobData.get("health"));
 
         switch (mob.getType()) {
@@ -211,10 +252,6 @@ public class DataStorage {
             case HORSE:
                 ((Horse) mob).setColor(Horse.Color.valueOf((String) mobData.get("color")));
                 ((Horse) mob).setStyle(Horse.Style.valueOf((String) mobData.get("style")));
-                break;
-            case LLAMA:
-                ((Llama) mob).setColor(Llama.Color.valueOf((String) mobData.get("color")));
-                ((Llama) mob).setStrength((Integer) mobData.get("strength"));
                 break;
             case PARROT:
                 ((Parrot) mob).setVariant(Parrot.Variant.valueOf((String) mobData.get("variant")));
@@ -275,12 +312,44 @@ public class DataStorage {
             case SHEEP:
                 ((Sheep) mob).setSheared((Boolean) mobData.get("isSheared"));
                 break;
-            case SLIME:
-                ((Slime) mob).setSize((Integer) mobData.get("size"));
-                break;
             case SNOWMAN:
                 ((Snowman) mob).setDerp((Boolean) mobData.get("isDerp"));
                 break;
+            case VILLAGER:
+                Villager v = (Villager) mob;
+                v.setProfession(Villager.Profession.valueOf((String) mobData.get("profession")));
+                v.setVillagerType(Villager.Type.valueOf((String) mobData.get("type")));
+                v.setVillagerLevel((Integer) mobData.get("level"));
+                v.setVillagerExperience((Integer) mobData.get("experience"));
+                break;
+            case ZOMBIE_VILLAGER:
+                ZombieVillager z = (ZombieVillager) mob;
+                z.setConversionPlayer(server.getOfflinePlayer(UUID.fromString((String) mobData.get("conversionPlayer"))));
+                z.setConversionTime((Integer) mobData.get("conversionTime"));
+                z.setVillagerProfession(Villager.Profession.valueOf((String) mobData.get("profession")));
+                z.setVillagerType(Villager.Type.valueOf((String) mobData.get("type")));
+                break;
+        }
+
+        if (mob instanceof Merchant) {
+            List<MerchantRecipe> trades = new ArrayList<>();
+            for (int i = 0; i < config.getConfigurationSection("pets." + uuid + ".trades").getKeys(false).size(); i++) {
+                String path = "trades." + i + ".";
+                MerchantRecipe t = new MerchantRecipe((ItemStack) mobData.get(path + "result"),
+                        (Integer) mobData.get(path + "uses"), (Integer) mobData.get(path + "maxUses"),
+                        (Boolean) mobData.get(path + "experienceReward"),
+                        (Integer) mobData.get(path + "villagerExperience"),
+                        (Float) mobData.get(path + "priceMultiplier"), (Integer) mobData.get(path + "demand"),
+                        (Integer) mobData.get(path + "specialPrice"));
+                List<ItemStack> ingredients = new ArrayList<>();
+                for (int j = 0; j < config.getConfigurationSection("pets." + uuid + "." + path + "ingredients")
+                        .getKeys(false).size(); j++) {
+                    ingredients.add((ItemStack) mobData.get(path + "ingredients." + j));
+                }
+                t.setIngredients(ingredients);
+                trades.add(t);
+            }
+            ((Merchant) mob).setRecipes(trades);
         }
 
         removePet(uuid.toString());
@@ -315,7 +384,7 @@ public class DataStorage {
 
     private Map<String, Object> get(UUID uuid)
     {
-        return config.getConfigurationSection("pets." + uuid.toString()).getValues(false);
+        return config.getConfigurationSection("pets." + uuid.toString()).getValues(true);
     }
 
     public boolean contains(UUID uuid) {
