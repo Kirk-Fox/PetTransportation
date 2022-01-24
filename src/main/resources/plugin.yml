@@ -6,13 +6,26 @@ main: me.jjm_223.pt.PetTransportation
 api-version: 1.18
 permissions:
   pt.*:
-    default: op
+    default: false
     children:
       pt.capture: true
       pt.restore: true
       pt.override: true
+      pt.capture.*: true
   pt.capture:
     default: true
+  pt.capture.*:
+    default: false
+    children:
+      pt.capture.pets: true
+      pt.capture.passive: true
+      pt.capture.monster: true
+  pt.capture.pets:
+    default: true
+  pt.capture.passive:
+    default: false
+  pt.capture.monster:
+    default: false
   pt.restore:
     default: true
   pt.override:

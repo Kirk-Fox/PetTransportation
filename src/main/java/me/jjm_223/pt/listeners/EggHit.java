@@ -44,18 +44,7 @@ public class EggHit implements Listener {
 
             // Make sure that either the shooter is the owner of the pet, or the player has permission to override this, and the player has permission to capture mobs.
             if (player.hasPermission("pt.capture")) {
-                boolean canPlayerCapture = true;
-                if (mob instanceof Tameable) {
-                    Tameable t = (Tameable) mob;
-                    canPlayerCapture = t.getOwner() == null || t.getOwner().getUniqueId().equals(player.getUniqueId());
-                } else if (mob instanceof Fox) {
-                    Fox f = (Fox) mob;
-                    canPlayerCapture = f.getFirstTrustedPlayer() == null
-                            || f.getFirstTrustedPlayer().getUniqueId().equals(player.getUniqueId())
-                            || (f.getSecondTrustedPlayer() != null
-                            && f.getSecondTrustedPlayer().getUniqueId().equals(player.getUniqueId()));
-                }
-                if (canPlayerCapture || player.hasPermission("pt.override")) {
+                if (canPlayerCapture(player, mob)) {
                     if (plugin.getConfigHandler().canCapture(mob)) {
                         // Cancel the event, we don't want them to get hurt, do we? (I hope you didn't answer yes D:)
                         event.setCancelled(true);
@@ -119,11 +108,30 @@ public class EggHit implements Listener {
                     }
                 } else {
                     // If the pet that was supposed to be captured was not owned by the egg thrower (and they don't have bypass perms), tell them off.
-                    player.sendMessage(ChatColor.RED + "You can't capture that pet. It isn't yours!");
+                    player.sendMessage(ChatColor.RED + "You don't have permission to capture that mob! It's either not your pet or a forbidden mob type.");
                 }
             } else {
                 player.sendMessage(ChatColor.RED + "You don't have permission to use PetTransportation!");
             }
         }
+    }
+
+    private boolean canPlayerCapture(Player player, Mob mob) {
+        if (mob instanceof Tameable && player.hasPermission("pt.capture.pets")) {
+            Tameable t = (Tameable) mob;
+            if (player.hasPermission("pt.override")) return true;
+            if (t.getOwner() != null) return t.getOwner().getUniqueId().equals(player.getUniqueId());
+        } else if (mob instanceof Fox && player.hasPermission("pt.capture.pets")) {
+            Fox f = (Fox) mob;
+            if (player.hasPermission("pt.override")) return true;
+            if (f.getFirstTrustedPlayer() != null){
+                return f.getFirstTrustedPlayer().getUniqueId().equals(player.getUniqueId())
+                        || (f.getSecondTrustedPlayer() != null
+                        && f.getSecondTrustedPlayer().getUniqueId().equals(player.getUniqueId()));
+            }
+        } else if (mob instanceof Monster) {
+            return player.hasPermission("pt.capture.monster");
+        }
+        return player.hasPermission("pt.capture.passive");
     }
 }
