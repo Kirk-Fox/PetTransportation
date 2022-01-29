@@ -7,7 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -24,23 +24,21 @@ public class EggHit implements Listener {
 
     private final PetTransportation plugin;
 
-    //TODO prevent baby chicken spawns when capturing pets
-
     public EggHit(PetTransportation plugin) {
         this.plugin = plugin;
     }
 
     // When an entity is damaged by another entity...
     @EventHandler(ignoreCancelled = true)
-    public void onEgg(EntityDamageByEntityEvent event) {
+    public void onEgg(ProjectileHitEvent event) {
         // Make sure damager is an egg projectile, make sure the shooter is a player (safety first), make sure the victim is a pet, and make sure the pet has an owner.
-        if (event.getDamager() instanceof Projectile
-                && event.getDamager().getType() == EntityType.EGG
-                && ((Projectile) event.getDamager()).getShooter() instanceof Player
-                && event.getEntity() instanceof Mob) {
+        if (event.getEntityType() == EntityType.EGG
+                && event.getEntity().getShooter() instanceof Player
+                && event.getHitEntity() != null
+                && event.getHitEntity() instanceof Mob) {
 
-            Player player = (Player) ((Projectile) event.getDamager()).getShooter();
-            Mob mob = (Mob) event.getEntity();
+            Player player = (Player) event.getEntity().getShooter();
+            Mob mob = (Mob) event.getHitEntity();
 
             // Make sure that either the shooter is the owner of the pet, or the player has permission to override this, and the player has permission to capture mobs.
             if (player.hasPermission("pt.capture")) {
@@ -48,19 +46,20 @@ public class EggHit implements Listener {
                     if (plugin.getConfigHandler().canCapture(mob)) {
                         // Cancel the event, we don't want them to get hurt, do we? (I hope you didn't answer yes D:)
                         event.setCancelled(true);
+                        event.getEntity().remove();
 
                         DataStorage storage = plugin.getStorage();
                         // Generate a random UUID to identify the pet in the config.
                         UUID storageID = UUID.randomUUID();
 
                         // Create a new spawn egg. (The Bukkit API does not allow changing the type of a spawn egg as of 1.9.)
-                        String itemName = event.getEntityType() +"_SPAWN_EGG";
+                        String itemName = mob.getType() +"_SPAWN_EGG";
                         Material spawnEgg = Material.getMaterial(itemName);
                         ItemStack item = new ItemStack((spawnEgg != null) ? spawnEgg : Material.WOLF_SPAWN_EGG, 1);
 
                         List<String> lore = new ArrayList<>();
                         String animalName;
-                        if (event.getEntityType() == EntityType.WOLF) {
+                        if (mob.getType() == EntityType.WOLF) {
                             animalName = "Dog";
                         } else {
                             animalName = mob.getName();
