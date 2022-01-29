@@ -28,10 +28,11 @@ public class EggHit implements Listener {
         this.plugin = plugin;
     }
 
-    // When an entity is damaged by another entity...
+    // When a projectile hits an object...
     @EventHandler(ignoreCancelled = true)
     public void onEgg(ProjectileHitEvent event) {
-        // Make sure damager is an egg projectile, make sure the shooter is a player (safety first), make sure the victim is a pet, and make sure the pet has an owner.
+        // Make sure the projectile is an egg, the shooter is a player (safety first),
+        // the egg hit an entity, and that entity is a mob.
         if (event.getEntityType() == EntityType.EGG
                 && event.getEntity().getShooter() instanceof Player
                 && event.getHitEntity() != null
@@ -40,21 +41,23 @@ public class EggHit implements Listener {
             Player player = (Player) event.getEntity().getShooter();
             Mob mob = (Mob) event.getHitEntity();
 
-            // Make sure that either the shooter is the owner of the pet, or the player has permission to override this, and the player has permission to capture mobs.
+            // Make sure the player has permission to capture, the player can capture this specific mob,
+            // and the configuration allows this mob to be captured.
             if (player.hasPermission("pt.capture")) {
                 if (canPlayerCapture(player, mob)) {
                     if (plugin.getConfigHandler().canCapture(mob)) {
                         // Cancel the event, we don't want them to get hurt, do we? (I hope you didn't answer yes D:)
                         event.setCancelled(true);
+                        // Remove the egg. (Otherwise it will pass right through the mob)
                         event.getEntity().remove();
 
                         DataStorage storage = plugin.getStorage();
                         // Generate a random UUID to identify the pet in the config.
                         UUID storageID = UUID.randomUUID();
 
-                        // Create a new spawn egg. (The Bukkit API does not allow changing the type of a spawn egg as of 1.9.)
                         String itemName = mob.getType() +"_SPAWN_EGG";
                         Material spawnEgg = Material.getMaterial(itemName);
+                        // If this mob type has a spawn egg, create that egg. Otherwise, create a wolf egg.
                         ItemStack item = new ItemStack((spawnEgg != null) ? spawnEgg : Material.WOLF_SPAWN_EGG, 1);
 
                         List<String> lore = new ArrayList<>();
@@ -69,8 +72,10 @@ public class EggHit implements Listener {
                         lore.add(storageID.toString());
                         // Add lore to metadata.
                         ItemMeta meta = item.getItemMeta();
+                        assert meta != null;
                         meta.setLore(lore);
 
+                        // If this mob type has no corresponding spawn egg, rename the default wolf egg.
                         if (spawnEgg == null) {
                             StringBuilder eggName = new StringBuilder();
                             String[] words = itemName.split("_");
@@ -82,7 +87,7 @@ public class EggHit implements Listener {
 
                         item.setItemMeta(meta);
 
-                        // Drop inventory contents of horse.
+                        // Drop inventory contents of mobs with inventories.
                         if (mob instanceof InventoryHolder) {
                             InventoryHolder invHolder = (InventoryHolder) mob;
                             for (ItemStack inventoryItem : invHolder.getInventory().getContents()) {
@@ -107,7 +112,8 @@ public class EggHit implements Listener {
                     }
                 } else {
                     // If the pet that was supposed to be captured was not owned by the egg thrower (and they don't have bypass perms), tell them off.
-                    player.sendMessage(ChatColor.RED + "You don't have permission to capture that mob! It's either not your pet or a forbidden mob type.");
+                    player.sendMessage(ChatColor.RED + "You don't have permission to capture that mob!" +
+                            "It's either not your pet or a forbidden mob type.");
                 }
             } else {
                 player.sendMessage(ChatColor.RED + "You don't have permission to use PetTransportation!");
@@ -115,7 +121,15 @@ public class EggHit implements Listener {
         }
     }
 
+    /**
+     * Checks permissions and pet ownership to determine if a specified player can capture a mob.
+     *
+     * @param player the player attempting to capture the mob
+     * @param mob the mob being captured
+     * @return if the player can capture the mob
+     */
     private boolean canPlayerCapture(Player player, Mob mob) {
+        // If the mob is a pet (tameable or a fox) then check the pet's ownership and player permissions.
         if (mob instanceof Tameable && player.hasPermission("pt.capture.pets")) {
             Tameable t = (Tameable) mob;
             if (player.hasPermission("pt.override")) return true;
@@ -131,6 +145,7 @@ public class EggHit implements Listener {
         } else if (mob instanceof Monster) {
             return player.hasPermission("pt.capture.monster");
         }
+        // If the mob is an untamed pet or a passive mob, return the relevant player permission.
         return player.hasPermission("pt.capture.passive");
     }
 }

@@ -23,11 +23,20 @@ public class ConfigHandler {
         config.getStringList("mob-blacklist").forEach(m -> blacklist.add(EntityType.valueOf(m.toUpperCase())));
     }
 
-    public boolean canCapture(Mob m) {
-        if (blacklist.contains(m.getType()) ^ whitelist) return false;
-        if (onlyPets) return (m instanceof Tameable && ((Tameable) m).isTamed())
-                || (m instanceof Fox && ((Fox) m).getFirstTrustedPlayer() != null);
-        if (!captureMonsters) return !(m instanceof Monster);
-        return !(m instanceof Axolotl || m instanceof Fish);
+    /**
+     * Checks if the config allows a mob to be captured.
+     * For example, if the config uses the blacklist as a whitelist,
+     * and the mob is not on that list, this returns false.
+     *
+     * @param mob the mob being checked
+     * @return if the mob is allowed by the config
+     */
+    public boolean canCapture(Mob mob) {
+        if (blacklist.contains(mob.getType()) ^ whitelist) return false;
+        if (onlyPets) return (mob instanceof Tameable && ((Tameable) mob).isTamed())
+                || (mob instanceof Fox && ((Fox) mob).getFirstTrustedPlayer() != null);
+        if (!captureMonsters) return !(mob instanceof Monster);
+        // Return false if mob is an axolotl or fish (because of the vanilla method of capturing these mobs).
+        return !(mob instanceof Axolotl || mob instanceof Fish);
     }
 }

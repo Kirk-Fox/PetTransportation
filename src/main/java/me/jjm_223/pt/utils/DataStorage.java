@@ -66,6 +66,12 @@ public class DataStorage {
         }.runTaskTimerAsynchronously(plugin, 0L, 200L);
     }
 
+    /**
+     * Saves a captured mob and its data to persistent storage.
+     *
+     * @param mob the captured mob
+     * @param uuid the randomly generated UUID created upon capturing this mob.
+     */
     public void savePet(Mob mob, UUID uuid) {
         Map<String, Object> mobData = new HashMap<>();
 
@@ -87,7 +93,7 @@ public class DataStorage {
             AbstractHorse h = (AbstractHorse) mob;
             mobData.put("jumpStrength", h.getJumpStrength());
             mobData.put("maxHealth", h.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
-            mobData.put("speed", getHorseSpeed(h));
+            mobData.put("speed", h.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue());
             if (h instanceof ChestedHorse) mobData.put("isCarryingChest", ((ChestedHorse) h).isCarryingChest());
         }
 
@@ -187,6 +193,7 @@ public class DataStorage {
                 break;
         }
 
+        // If the mob is a villager or wandering trader, save the trades.
         if (mob instanceof Merchant) {
             List<MerchantRecipe> trades = ((Merchant) mob).getRecipes();
             int i = 0;
@@ -229,7 +236,7 @@ public class DataStorage {
             AbstractHorse h = (AbstractHorse) mob;
             h.setJumpStrength((Double) mobData.get("jumpStrength"));
             h.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue((Double) mobData.get("maxHealth"));
-            setHorseSpeed(h, (Double) mobData.get("speed"));
+            h.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue((Double) mobData.get("speed"));
             if (h instanceof ChestedHorse) ((ChestedHorse) h).setCarryingChest((Boolean) mobData.get("isCarryingChest"));
         }
 
@@ -355,6 +362,13 @@ public class DataStorage {
         removePet(uuid.toString());
     }
 
+    /**
+     * Gets the {@link EntityType} associated with a stored pet
+     *
+     * @param uuid the UUID associated with the stored pet
+     * @return the type of the stored pet
+     * @throws IllegalArgumentException if the storage has no pet with the associated UUID
+     */
     public EntityType identifyPet(String uuid) {
         ConfigurationSection section = config.getConfigurationSection("pets." + uuid);
         if (section == null)
@@ -363,36 +377,43 @@ public class DataStorage {
         return EntityType.valueOf(section.getString("entityType"));
     }
 
+    /**
+     * Removes a pet from storage
+     *
+     * @param uuid the UUID associated with the stored pet
+     */
     public void removePet(String uuid) {
         config.set("pets." + uuid, null);
     }
 
-    // Get horse speed.
-    private double getHorseSpeed(AbstractHorse horse) {
-        return horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
-    }
-
-    // Set horse speed.
-    private void setHorseSpeed(AbstractHorse horse, double value) {
-        horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue(value);
-    }
-
-    private void set(UUID uuid, Map<String, Object> mobData)
-    {
+    /**
+     * Saves captured pet's data to YAML config
+     *
+     * @param uuid the UUID associated with the stored pet
+     * @param mobData a map of the mob's data
+     */
+    private void set(UUID uuid, Map<String, Object> mobData) {
         mobData.forEach((l, v) -> config.set("pets." + uuid.toString() + "." + l, v));
     }
 
-    private Map<String, Object> get(UUID uuid)
-    {
+    /**
+     * Gets captured pet's data from YAML config
+     *
+     * @param uuid the UUID associated with the stored pet
+     * @return a map of the mob's data
+     */
+    private Map<String, Object> get(UUID uuid) {
         return config.getConfigurationSection("pets." + uuid.toString()).getValues(true);
     }
 
-    public boolean contains(UUID uuid) {
+    /**
+     * Checks if storage contains a mob with a specified UUID
+     *
+     * @param uuid the UUID being checked
+     * @return if storage contains a mob with the specified UUID
+     */
+    public boolean contains(String uuid) {
         return config.contains("pets." + uuid);
-    }
-
-    public boolean contains(String string) {
-        return contains(UUID.fromString(string));
     }
 
     public void save() throws IOException {
