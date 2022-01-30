@@ -34,10 +34,10 @@ public class ConfigHandler {
     public boolean canCapture(Mob mob) {
         // Return false if mob is an axolotl or fish (because of the vanilla method of capturing these mobs).
         // Return false if mob is on blacklist or if mob is not on whitelist.
-        if (mob instanceof Axolotl || mob instanceof Fish || (blacklist.contains(mob.getType()) ^ whitelist))
+        if (mob.getType().toString().equals("AXOLOTL") || mob instanceof Fish || (blacklist.contains(mob.getType()) ^ whitelist))
             return false;
         if (onlyPets) return (mob instanceof Tameable && ((Tameable) mob).isTamed())
-                || (mob instanceof Fox && ((Fox) mob).getFirstTrustedPlayer() != null);
+                || (mob.getType().toString().equals("FOX") && ((Fox) mob).getFirstTrustedPlayer() != null);
         return captureMonsters || !(mob instanceof Monster);
     }
 }
