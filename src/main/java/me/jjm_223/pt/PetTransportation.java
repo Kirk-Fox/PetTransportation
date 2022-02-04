@@ -13,6 +13,8 @@ import java.io.IOException;
  */
 public class PetTransportation extends JavaPlugin {
 
+    private int serverVersion;
+
     private DataStorage storage;
     private ConfigHandler configHandler;
 
@@ -20,12 +22,14 @@ public class PetTransportation extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        storage = new DataStorage(this);
+        serverVersion = Integer.parseInt(getServer().getVersion().split("\\.")[1]);
+
+        storage = new DataStorage(this, serverVersion);
         configHandler = new ConfigHandler(this);
 
         PluginManager pm = getServer().getPluginManager();
-        pm.registerEvents(new EggHit(this), this);
-        pm.registerEvents(new EggClick(this), this);
+        pm.registerEvents(new EggHit(this, serverVersion), this);
+        pm.registerEvents(new EggClick(this, serverVersion), this);
         pm.registerEvents(new ItemDespawn(this), this);
 
         new Metrics(this, BSTATS_ID);

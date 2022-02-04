@@ -26,13 +26,15 @@ import java.util.*;
 public class DataStorage {
 
     private final Server server;
+    private final int serverVersion;
 
     private final FileConfiguration config;
     private final File saveFile;
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public DataStorage(JavaPlugin plugin) {
+    public DataStorage(JavaPlugin plugin, int serverVersion) {
         server = plugin.getServer();
+        this.serverVersion = serverVersion;
 
         config = new YamlConfiguration();
         saveFile = new File(plugin.getDataFolder() + File.separator + "pets.yml");
@@ -72,7 +74,7 @@ public class DataStorage {
      * @param mob the captured mob
      * @param uuid the randomly generated UUID created upon capturing this mob.
      */
-    public void savePet(Mob mob, UUID uuid) {
+    public void savePet(LivingEntity mob, UUID uuid) {
         Map<String, Object> mobData = new HashMap<>();
 
         mobData.put("entityType", mob.getType().name());
@@ -86,36 +88,44 @@ public class DataStorage {
         }
 
         if (mob instanceof Ageable) mobData.put("age", ((Ageable) mob).getAge());
-        if (mob instanceof Sittable) mobData.put("isSitting", ((Sittable) mob).isSitting());
-        if (mob instanceof Steerable) mobData.put("hasSaddle", ((Steerable) mob).hasSaddle());
 
-        if (mob instanceof AbstractHorse) {
-            AbstractHorse h = (AbstractHorse) mob;
-            mobData.put("jumpStrength", h.getJumpStrength());
-            mobData.put("maxHealth", h.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
-            mobData.put("speed", h.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue());
-            if (h instanceof ChestedHorse) mobData.put("isCarryingChest", ((ChestedHorse) h).isCarryingChest());
-        }
-
-        if (mob instanceof Llama) {
-            mobData.put("color", ((Llama) mob).getColor().name());
-            mobData.put("strength", ((Llama) mob).getStrength());
+        if (serverVersion > 10) {
+            if (mob instanceof AbstractHorse) {
+                AbstractHorse h = (AbstractHorse) mob;
+                mobData.put("jumpStrength", h.getJumpStrength());
+                mobData.put("maxHealth", h.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
+                mobData.put("speed", h.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue());
+                if (h instanceof ChestedHorse) mobData.put("isCarryingChest", ((ChestedHorse) h).isCarryingChest());
+            }
+        } else {
+            if (mob instanceof Horse) {
+                Horse h = (Horse) mob;
+                mobData.put("jumpStrength", h.getJumpStrength());
+                mobData.put("maxHealth", h.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
+                mobData.put("speed", h.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue());
+                mobData.put("isCarryingChest", h.isCarryingChest());
+            }
         }
 
         if (mob instanceof Slime) mobData.put("size", ((Slime) mob).getSize());
 
         switch (mob.getType()) {
             case WOLF:
+                mobData.put("isSitting", ((Wolf) mob).isSitting());
                 mobData.put("collarColor", ((Wolf) mob).getCollarColor().name());
                 break;
             case CAT:
+                mobData.put("isSitting", ((Cat) mob).isSitting());
                 mobData.put("breed", ((Cat) mob).getCatType().name());
                 break;
             case HORSE:
-                mobData.put("color", ((Horse) mob).getColor().name());
-                mobData.put("style", ((Horse) mob).getStyle().name());
+                Horse h = (Horse) mob;
+                mobData.put("color", h.getColor().name());
+                mobData.put("style", h.getStyle().name());
+                if (serverVersion < 11) mobData.put("variant", h.getVariant().name());
                 break;
             case PARROT:
+                mobData.put("isSitting", ((Parrot) mob).isSitting());
                 mobData.put("variant", ((Parrot) mob).getVariant().name());
                 break;
             case BEE:
@@ -134,6 +144,7 @@ public class DataStorage {
                 break;
             case FOX:
                 Fox f = (Fox) mob;
+                mobData.put("isSitting", f.isSitting());
                 AnimalTamer tp1 = f.getFirstTrustedPlayer();
                 AnimalTamer tp2 = f.getSecondTrustedPlayer();
                 if (tp1 != null) {
@@ -152,15 +163,28 @@ public class DataStorage {
             case IRON_GOLEM:
                 mobData.put("isPlayerCreated", ((IronGolem) mob).isPlayerCreated());
                 break;
+            case LLAMA:
+            case TRADER_LLAMA:
+                mobData.put("color", ((Llama) mob).getColor().name());
+                mobData.put("strength", ((Llama) mob).getStrength());
+                break;
             case MUSHROOM_COW:
                 mobData.put("variant", ((MushroomCow) mob).getVariant().name());
                 break;
             case OCELOT:
-                mobData.put("isTrusting", ((Ocelot) mob).isTrusting());
+                if (serverVersion > 13) {
+                    mobData.put("isTrusting", ((Ocelot) mob).isTrusting());
+                } else {
+                    if (serverVersion > 11) mobData.put("isSitting", ((Sittable) mob).isSitting());
+                    mobData.put("breed", ((Ocelot) mob).getCatType().name());
+                }
                 break;
             case PANDA:
                 mobData.put("mainGene", ((Panda) mob).getMainGene().name());
                 mobData.put("hiddenGene", ((Panda) mob).getHiddenGene().name());
+                break;
+            case PIG:
+                mobData.put("hasSaddle", ((Pig) mob).hasSaddle());
                 break;
             case ZOMBIFIED_PIGLIN:
                 mobData.put("anger", ((PigZombie) mob).getAnger());
@@ -176,6 +200,9 @@ public class DataStorage {
                 break;
             case SNOWMAN:
                 mobData.put("isDerp", ((Snowman) mob).isDerp());
+                break;
+            case STRIDER:
+                mobData.put("hasSaddle", ((Strider) mob).hasSaddle());
                 break;
             case VILLAGER:
                 Villager v = (Villager) mob;
@@ -194,8 +221,14 @@ public class DataStorage {
         }
 
         // If the mob is a villager or wandering trader, save the trades.
-        if (mob instanceof Merchant) {
-            List<MerchantRecipe> trades = ((Merchant) mob).getRecipes();
+
+        if (mob instanceof Villager || mob.getType().name().equals("WANDERING_TRADER")) {
+            List<MerchantRecipe> trades;
+            if (serverVersion > 10) {
+                trades = ((Merchant) mob).getRecipes();
+            } else {
+                trades = ((Villager) mob).getRecipes();
+            }
             int i = 0;
             for (MerchantRecipe t : trades) {
                 String path = "trades." + i + ".";
@@ -222,7 +255,7 @@ public class DataStorage {
      * @param mob the mob spawned that will have its data set
      * @param uuid the UUID associated with the captured pet
      */
-    public void restorePet(Mob mob, UUID uuid) {
+    public void restorePet(LivingEntity mob, UUID uuid) {
         Map<String, Object> mobData = get(uuid);
 
         mob.setCustomName((String) mobData.get("name"));
@@ -235,20 +268,23 @@ public class DataStorage {
         }
 
         if (mob instanceof Ageable) ((Ageable) mob).setAge((Integer) mobData.get("age"));
-        if (mob instanceof Sittable) ((Sittable) mob).setSitting((Boolean) mobData.get("isSitting"));
-        if (mob instanceof Steerable) ((Steerable) mob).setSaddle((Boolean) mobData.get("hasSaddle"));
 
-        if (mob instanceof AbstractHorse) {
-            AbstractHorse h = (AbstractHorse) mob;
-            h.setJumpStrength((Double) mobData.get("jumpStrength"));
-            h.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue((Double) mobData.get("maxHealth"));
-            h.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue((Double) mobData.get("speed"));
-            if (h instanceof ChestedHorse) ((ChestedHorse) h).setCarryingChest((Boolean) mobData.get("isCarryingChest"));
-        }
-
-        if (mob instanceof Llama) {
-            ((Llama) mob).setColor(Llama.Color.valueOf((String) mobData.get("color")));
-            ((Llama) mob).setStrength((Integer) mobData.get("strength"));
+        if (serverVersion > 10) {
+            if (mob instanceof AbstractHorse) {
+                AbstractHorse h = (AbstractHorse) mob;
+                h.setJumpStrength((Double) mobData.get("jumpStrength"));
+                h.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue((Double) mobData.get("maxHealth"));
+                h.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue((Double) mobData.get("speed"));
+                if (h instanceof ChestedHorse) ((ChestedHorse) h).setCarryingChest((Boolean) mobData.get("isCarryingChest"));
+            }
+        } else {
+            if (mob instanceof Horse) {
+                Horse h = (Horse) mob;
+                h.setJumpStrength((Double) mobData.get("jumpStrength"));
+                h.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue((Double) mobData.get("maxHealth"));
+                h.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue((Double) mobData.get("speed"));
+                h.setCarryingChest((Boolean) mobData.get("isCarryingChest"));
+            }
         }
 
         if (mob instanceof Slime) ((Slime) mob).setSize((Integer) mobData.get("size"));
@@ -257,16 +293,21 @@ public class DataStorage {
 
         switch (mob.getType()) {
             case WOLF:
+                ((Wolf) mob).setSitting((Boolean) mobData.get("isSitting"));
                 ((Wolf) mob).setCollarColor(DyeColor.valueOf((String) mobData.get("collarColor")));
                 break;
             case CAT:
+                ((Cat) mob).setSitting((Boolean) mobData.get("isSitting"));
                 ((Cat) mob).setCatType(Cat.Type.valueOf((String) mobData.get("breed")));
                 break;
             case HORSE:
-                ((Horse) mob).setColor(Horse.Color.valueOf((String) mobData.get("color")));
-                ((Horse) mob).setStyle(Horse.Style.valueOf((String) mobData.get("style")));
+                Horse h = (Horse) mob;
+                h.setColor(Horse.Color.valueOf((String) mobData.get("color")));
+                h.setStyle(Horse.Style.valueOf((String) mobData.get("style")));
+                if (serverVersion < 11) h.setVariant(Horse.Variant.valueOf((String) mobData.get("variant")));
                 break;
             case PARROT:
+                ((Parrot) mob).setSitting((Boolean) mobData.get("isSitting"));
                 ((Parrot) mob).setVariant(Parrot.Variant.valueOf((String) mobData.get("variant")));
                 break;
             case BEE:
@@ -285,6 +326,7 @@ public class DataStorage {
                 break;
             case FOX:
                 Fox f = (Fox) mob;
+                f.setSitting((Boolean) mobData.get("isSitting"));
                 String tp1 = (String) mobData.get("firstTrustedPlayer");
                 String tp2 = (String) mobData.get("secondTrustedPlayer");
                 if (tp1 != null) {
@@ -303,15 +345,28 @@ public class DataStorage {
             case IRON_GOLEM:
                 ((IronGolem) mob).setPlayerCreated((Boolean) mobData.get("isPlayerCreated"));
                 break;
+            case LLAMA:
+            case TRADER_LLAMA:
+                ((Llama) mob).setColor(Llama.Color.valueOf((String) mobData.get("color")));
+                ((Llama) mob).setStrength((Integer) mobData.get("strength"));
+                break;
             case MUSHROOM_COW:
                 ((MushroomCow) mob).setVariant(MushroomCow.Variant.valueOf((String) mobData.get("variant")));
                 break;
             case OCELOT:
-                ((Ocelot) mob).setTrusting((Boolean) mobData.get("isTrusting"));
+                if (serverVersion > 13) {
+                    ((Ocelot) mob).setTrusting((Boolean) mobData.get("isTrusting"));
+                } else {
+                    if (serverVersion > 11) ((Sittable) mob).setSitting((Boolean) mobData.get("isSitting"));
+                    ((Ocelot) mob).setCatType(Ocelot.Type.valueOf((String) mobData.get("breed")));
+                }
                 break;
             case PANDA:
                 ((Panda) mob).setMainGene(Panda.Gene.valueOf((String) mobData.get("mainGene")));
                 ((Panda) mob).setHiddenGene(Panda.Gene.valueOf((String) mobData.get("hiddenGene")));
+                break;
+            case PIG:
+                ((Pig) mob).setSaddle((Boolean) mobData.get("hasSaddle"));
                 break;
             case ZOMBIFIED_PIGLIN:
                 ((PigZombie) mob).setAnger((Integer) mobData.get("anger"));
@@ -327,6 +382,9 @@ public class DataStorage {
                 break;
             case SNOWMAN:
                 ((Snowman) mob).setDerp((Boolean) mobData.get("isDerp"));
+                break;
+            case STRIDER:
+                ((Strider) mob).setSaddle((Boolean) mobData.get("hasSaddle"));
                 break;
             case VILLAGER:
                 Villager v = (Villager) mob;
@@ -345,7 +403,7 @@ public class DataStorage {
         }
 
         // If the mob is a villager or wandering trader, retrieve the saved trades and apply them to the merchant.
-        if (mob instanceof Merchant) {
+        if (mob instanceof Villager || mob.getType().name().equals("WANDERING_TRADER")) {
             List<MerchantRecipe> trades = new ArrayList<>();
             for (int i = 0; i < config.getConfigurationSection("pets." + uuid + ".trades").getKeys(false).size(); i++) {
                 String path = "trades." + i + ".";
@@ -363,7 +421,12 @@ public class DataStorage {
                 t.setIngredients(ingredients);
                 trades.add(t);
             }
-            ((Merchant) mob).setRecipes(trades);
+
+            if (serverVersion > 10) {
+                ((Merchant) mob).setRecipes(trades);
+            } else {
+                ((Villager) mob).setRecipes(trades);
+            }
         }
 
         removePet(uuid.toString());

@@ -7,7 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Mob;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -24,9 +24,11 @@ import java.util.UUID;
 public class EggClick implements Listener {
 
     private final PetTransportation plugin;
+    private final int serverVersion;
 
-    public EggClick(PetTransportation plugin) {
+    public EggClick(PetTransportation plugin, int serverVersion) {
         this.plugin = plugin;
+        this.serverVersion = serverVersion;
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -36,7 +38,8 @@ public class EggClick implements Listener {
         if (player.hasPermission("pt.restore")
                 && event.getItem() != null
                 && event.getAction() == Action.RIGHT_CLICK_BLOCK
-                && event.getItem().getType().toString().endsWith("SPAWN_EGG")
+                && (event.getItem().getType().toString().endsWith("SPAWN_EGG")
+                || event.getItem().getType().toString().equals("MONSTER_EGG"))
                 && event.getItem().getItemMeta() != null
                 && event.getItem().getItemMeta().getLore() != null
                 && event.getItem().getItemMeta().getLore().size() == 2
@@ -68,9 +71,13 @@ public class EggClick implements Listener {
                 }
 
                 EntityType type = dataStorage.identifyPet(uuid.toString());
-                Mob mob = (Mob) clickedBlock.getWorld().spawnEntity(spawnLoc, type);
+                LivingEntity mob = (LivingEntity) clickedBlock.getWorld().spawnEntity(spawnLoc, type);
 
-                player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
+                if (serverVersion > 8) {
+                    player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
+                } else {
+                    player.getInventory().setItemInHand(new ItemStack(Material.AIR));
+                }
 
                 dataStorage.restorePet(mob, uuid);
             } else {

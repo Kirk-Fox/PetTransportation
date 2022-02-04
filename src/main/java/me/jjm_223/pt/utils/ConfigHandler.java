@@ -31,10 +31,11 @@ public class ConfigHandler {
      * @param mob the mob being checked
      * @return if the mob is allowed by the config
      */
-    public boolean canCapture(Mob mob) {
+    public boolean canCapture(LivingEntity mob) {
         // Return false if mob is an axolotl or fish (because of the vanilla method of capturing these mobs).
         // Return false if mob is on blacklist or if mob is not on whitelist.
-        if (mob.getType().toString().equals("AXOLOTL") || mob instanceof Fish || (blacklist.contains(mob.getType()) ^ whitelist))
+        if (mob instanceof ArmorStand || mob.getType().toString().equals("AXOLOTL") || mob instanceof Fish
+                || mob instanceof HumanEntity || (blacklist.contains(mob.getType()) ^ whitelist))
             return false;
         if (onlyPets) return (mob instanceof Tameable && ((Tameable) mob).isTamed())
                 || (mob.getType().toString().equals("FOX") && ((Fox) mob).getFirstTrustedPlayer() != null);

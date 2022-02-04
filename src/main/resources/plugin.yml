@@ -3,7 +3,7 @@ version: ${project.version}
 authors: [jjm_223, Kirk Fox]
 description: Allows you to throw an egg at a pet (or other mob) to keep it in your inventory.
 main: me.jjm_223.pt.PetTransportation
-api-version: 1.16
+api-version: 1.13
 permissions:
   pt.*:
     default: false
