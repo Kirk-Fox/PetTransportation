@@ -9,6 +9,7 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Merchant;
 import org.bukkit.inventory.MerchantRecipe;
@@ -80,6 +81,8 @@ public class DataStorage {
         mobData.put("entityType", mob.getType().name());
         mobData.put("name", mob.getCustomName());
         mobData.put("health", mob.getHealth());
+
+        mobData.put("fireTicks", mob.getFireTicks());
 
         if (mob instanceof Tameable) {
             Tameable t = (Tameable) mob;
@@ -169,7 +172,7 @@ public class DataStorage {
                 mobData.put("strength", ((Llama) mob).getStrength());
                 break;
             case MUSHROOM_COW:
-                mobData.put("variant", ((MushroomCow) mob).getVariant().name());
+                if (serverVersion > 13) mobData.put("variant", ((MushroomCow) mob).getVariant().name());
                 break;
             case OCELOT:
                 if (serverVersion > 13) {
@@ -189,14 +192,15 @@ public class DataStorage {
             case ZOMBIFIED_PIGLIN:
                 mobData.put("anger", ((PigZombie) mob).getAnger());
                 break;
-            case PUFFERFISH:
-                mobData.put("puffState", ((PufferFish) mob).getPuffState());
-                break;
             case RABBIT:
                 mobData.put("rabbitType", ((Rabbit) mob).getRabbitType().name());
                 break;
             case SHEEP:
                 mobData.put("isSheared", ((Sheep) mob).isSheared());
+                mobData.put("color", ((Sheep) mob).getColor().name());
+                break;
+            case SKELETON:
+                if (serverVersion < 11) mobData.put("skeletonType", ((Skeleton) mob).getSkeletonType().name());
                 break;
             case SNOWMAN:
                 mobData.put("isDerp", ((Snowman) mob).isDerp());
@@ -206,15 +210,30 @@ public class DataStorage {
                 break;
             case VILLAGER:
                 Villager v = (Villager) mob;
+                if (serverVersion > 13) {
+                    mobData.put("type", v.getVillagerType().name());
+                    mobData.put("level", v.getVillagerLevel());
+                    mobData.put("experience", v.getVillagerExperience());
+                }
                 mobData.put("profession", v.getProfession().name());
-                mobData.put("type", v.getVillagerType().name());
-                mobData.put("level", v.getVillagerLevel());
-                mobData.put("experience", v.getVillagerExperience());
+                break;
+            case ZOMBIE:
+                if (serverVersion < 11) {
+                    boolean isVillager = ((Zombie) mob).isVillager();
+                    mobData.put("isVillager", isVillager);
+                    if (isVillager) {
+                        mobData.put("profession", ((Zombie) mob).getVillagerProfession().name());
+                    }
+                }
                 break;
             case ZOMBIE_VILLAGER:
                 ZombieVillager z = (ZombieVillager) mob;
-                mobData.put("conversionPlayer", z.getConversionPlayer().getUniqueId().toString());
-                mobData.put("conversionTime", z.getConversionTime());
+                mobData.put("isConverting", z.isConverting());
+                if (z.isConverting()) {
+                    if (z.getConversionPlayer() != null)
+                        mobData.put("conversionPlayer", z.getConversionPlayer().getUniqueId().toString());
+                    mobData.put("conversionTime", z.getConversionTime());
+                }
                 mobData.put("profession", z.getVillagerProfession().name());
                 mobData.put("type", z.getVillagerType().name());
                 break;
@@ -236,14 +255,34 @@ public class DataStorage {
                 mobData.put(path + "uses", t.getUses());
                 mobData.put(path + "maxUses", t.getMaxUses());
                 mobData.put(path + "experienceReward", t.hasExperienceReward());
-                mobData.put(path + "villagerExperience", t.getVillagerExperience());
-                mobData.put(path + "priceMultiplier", t.getPriceMultiplier());
-                mobData.put(path + "demand", t.getDemand());
-                mobData.put(path + "specialPrice", t.getSpecialPrice());
+                if (serverVersion > 13) {
+                    mobData.put(path + "villagerExperience", t.getVillagerExperience());
+                    mobData.put(path + "priceMultiplier", t.getPriceMultiplier());
+                    if (serverVersion > 17) {
+                        mobData.put(path + "demand", t.getDemand());
+                        mobData.put(path + "specialPrice", t.getSpecialPrice());
+                    }
+                }
                 List<ItemStack> ingredients = t.getIngredients();
                 for (int j = 0; j < ingredients.size(); j++) mobData.put(path + "ingredients." + j, ingredients.get(j));
                 i++;
             }
+        }
+
+        EntityEquipment eq = mob.getEquipment();
+        if (eq != null) {
+            mobData.put("equipment.helmet", eq.getHelmet());
+            mobData.put("equipment.helmetChance", eq.getHelmetDropChance());
+            mobData.put("equipment.chestplate", eq.getChestplate());
+            mobData.put("equipment.chestplateChance", eq.getChestplateDropChance());
+            mobData.put("equipment.leggings", eq.getLeggings());
+            mobData.put("equipment.leggingsChance", eq.getLeggingsDropChance());
+            mobData.put("equipment.boots", eq.getBoots());
+            mobData.put("equipment.bootsChance", eq.getBootsDropChance());
+            mobData.put("equipment.mainHand", eq.getItemInMainHand());
+            mobData.put("equipment.mainHandChance", eq.getItemInMainHandDropChance());
+            mobData.put("equipment.offHand", eq.getItemInOffHand());
+            mobData.put("equipment.offHandChance", eq.getItemInOffHandDropChance());
         }
 
         set(uuid, mobData);
@@ -259,6 +298,8 @@ public class DataStorage {
         Map<String, Object> mobData = get(uuid);
 
         mob.setCustomName((String) mobData.get("name"));
+
+        mob.setFireTicks((Integer) mobData.get("fireTicks"));
 
         if (mob instanceof Tameable) {
             Tameable t = (Tameable) mob;
@@ -351,7 +392,8 @@ public class DataStorage {
                 ((Llama) mob).setStrength((Integer) mobData.get("strength"));
                 break;
             case MUSHROOM_COW:
-                ((MushroomCow) mob).setVariant(MushroomCow.Variant.valueOf((String) mobData.get("variant")));
+                if (serverVersion > 13) ((MushroomCow) mob).setVariant(MushroomCow.
+                        Variant.valueOf((String) mobData.get("variant")));
                 break;
             case OCELOT:
                 if (serverVersion > 13) {
@@ -371,14 +413,16 @@ public class DataStorage {
             case ZOMBIFIED_PIGLIN:
                 ((PigZombie) mob).setAnger((Integer) mobData.get("anger"));
                 break;
-            case PUFFERFISH:
-                ((PufferFish) mob).setPuffState((Integer) mobData.get("puffState"));
-                break;
             case RABBIT:
                 ((Rabbit) mob).setRabbitType(Rabbit.Type.valueOf((String) mobData.get("rabbitType")));
                 break;
             case SHEEP:
                 ((Sheep) mob).setSheared((Boolean) mobData.get("isSheared"));
+                ((Sheep) mob).setColor(DyeColor.valueOf((String) mobData.get("color")));
+                break;
+            case SKELETON:
+                if (serverVersion < 11) ((Skeleton) mob).setSkeletonType(Skeleton.
+                        SkeletonType.valueOf((String) mobData.get("skeletonType")));
                 break;
             case SNOWMAN:
                 ((Snowman) mob).setDerp((Boolean) mobData.get("isDerp"));
@@ -388,15 +432,26 @@ public class DataStorage {
                 break;
             case VILLAGER:
                 Villager v = (Villager) mob;
+                if (serverVersion > 13) {
+                    v.setVillagerType(Villager.Type.valueOf((String) mobData.get("type")));
+                    v.setVillagerLevel((Integer) mobData.get("level"));
+                    v.setVillagerExperience((Integer) mobData.get("experience"));
+                }
                 v.setProfession(Villager.Profession.valueOf((String) mobData.get("profession")));
-                v.setVillagerType(Villager.Type.valueOf((String) mobData.get("type")));
-                v.setVillagerLevel((Integer) mobData.get("level"));
-                v.setVillagerExperience((Integer) mobData.get("experience"));
+                break;
+            case ZOMBIE:
+                if (serverVersion < 11) {
+                    if ((Boolean) mobData.get("isVillager"))
+                        ((Zombie) mob).setVillagerProfession(Villager.Profession.valueOf((String) mobData.get("profession")));
+                }
                 break;
             case ZOMBIE_VILLAGER:
                 ZombieVillager z = (ZombieVillager) mob;
-                z.setConversionPlayer(server.getOfflinePlayer(UUID.fromString((String) mobData.get("conversionPlayer"))));
-                z.setConversionTime((Integer) mobData.get("conversionTime"));
+                if ((Boolean) mobData.get("isConverting")) {
+                    if (mobData.get("conversionPlayer") != null) z.setConversionPlayer(server.
+                            getOfflinePlayer(UUID.fromString((String) mobData.get("conversionPlayer"))));
+                    z.setConversionTime((Integer) mobData.get("conversionTime"));
+                }
                 z.setVillagerProfession(Villager.Profession.valueOf((String) mobData.get("profession")));
                 z.setVillagerType(Villager.Type.valueOf((String) mobData.get("type")));
                 break;
@@ -409,10 +464,15 @@ public class DataStorage {
                 String path = "trades." + i + ".";
                 MerchantRecipe t = new MerchantRecipe((ItemStack) mobData.get(path + "result"),
                         (Integer) mobData.get(path + "uses"), (Integer) mobData.get(path + "maxUses"),
-                        (Boolean) mobData.get(path + "experienceReward"),
-                        (Integer) mobData.get(path + "villagerExperience"),
-                        (Float) mobData.get(path + "priceMultiplier"), (Integer) mobData.get(path + "demand"),
-                        (Integer) mobData.get(path + "specialPrice"));
+                        (Boolean) mobData.get(path + "experienceReward"));
+                if (serverVersion > 13) {
+                    t.setVillagerExperience((Integer) mobData.get(path + "villagerExperience"));
+                    t.setPriceMultiplier(getFloat(uuid, path + "priceMultiplier"));
+                    if (serverVersion > 17) {
+                        t.setDemand((Integer) mobData.get(path + "demand"));
+                        t.setSpecialPrice((Integer) mobData.get(path + "specialPrice"));
+                    }
+                }
                 List<ItemStack> ingredients = new ArrayList<>();
                 for (int j = 0; j < config.getConfigurationSection("pets." + uuid + "." + path + "ingredients")
                         .getKeys(false).size(); j++) {
@@ -427,6 +487,22 @@ public class DataStorage {
             } else {
                 ((Villager) mob).setRecipes(trades);
             }
+        }
+
+        EntityEquipment eq = mob.getEquipment();
+        if (eq != null) {
+            eq.setHelmet((ItemStack) mobData.get("equipment.helmet"));
+            eq.setHelmetDropChance(getFloat(uuid, "equipment.helmetChance"));
+            eq.setChestplate((ItemStack) mobData.get("equipment.chestplate"));
+            eq.setChestplateDropChance(getFloat(uuid, "equipment.chestplateChance"));
+            eq.setLeggings((ItemStack) mobData.get("equipment.leggings"));
+            eq.setLeggingsDropChance(getFloat(uuid, "equipment.leggingsChance"));
+            eq.setBoots((ItemStack) mobData.get("equipment.boots"));
+            eq.setBootsDropChance(getFloat(uuid, "equipment.bootsChance"));
+            eq.setItemInMainHand((ItemStack) mobData.get("equipment.mainHand"));
+            eq.setItemInMainHandDropChance(getFloat(uuid, "equipment.mainHandChance"));
+            eq.setItemInOffHand((ItemStack) mobData.get("equipment.offHand"));
+            eq.setItemInOffHandDropChance(getFloat(uuid, "equipment.offHandChance"));
         }
 
         removePet(uuid.toString());
@@ -474,6 +550,10 @@ public class DataStorage {
      */
     private Map<String, Object> get(UUID uuid) {
         return config.getConfigurationSection("pets." + uuid.toString()).getValues(true);
+    }
+
+    private float getFloat(UUID uuid, String key) {
+        return (float) config.getDouble("pets." + uuid.toString() + "." + key);
     }
 
     /**

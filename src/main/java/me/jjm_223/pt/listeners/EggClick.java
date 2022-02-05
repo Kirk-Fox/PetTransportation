@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.UUID;
 
@@ -71,15 +72,20 @@ public class EggClick implements Listener {
                 }
 
                 EntityType type = dataStorage.identifyPet(uuid.toString());
-                LivingEntity mob = (LivingEntity) clickedBlock.getWorld().spawnEntity(spawnLoc, type);
-
-                if (serverVersion > 8) {
-                    player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
+                LivingEntity mob;
+                if (serverVersion > 11) {
+                    mob = (LivingEntity) clickedBlock.getWorld().spawn(spawnLoc, type.getEntityClass(),
+                            (m) -> dataStorage.restorePet((LivingEntity) m, uuid));
                 } else {
-                    player.getInventory().setItemInHand(new ItemStack(Material.AIR));
+                    mob = (LivingEntity) clickedBlock.getWorld().spawnEntity(spawnLoc, type);
+                    new BukkitRunnable() {
+                        public void run() {
+                            dataStorage.restorePet(mob, uuid);
+                        }
+                    }.runTaskLater(plugin, 2L);
                 }
 
-                dataStorage.restorePet(mob, uuid);
+                player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
             } else {
                 player.sendMessage(ChatColor.RED + "You do not have permission to use that.");
             }

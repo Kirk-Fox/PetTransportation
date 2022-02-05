@@ -14,6 +14,7 @@ import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SpawnEggMeta;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +52,7 @@ public class EggHit implements Listener {
                 // and the configuration allows this mob to be captured.
                 if (player.hasPermission("pt.capture")) {
                     if (canPlayerCapture(player, mob)) {
-                        captureMob(event, player, mob);
+                        if(plugin.getConfigHandler().canCapture(mob)) captureMob(event, player, mob);
                     } else {
                         // If the pet that was supposed to be captured was not owned by the egg thrower (and they don't have bypass perms), tell them off.
                         player.sendMessage(ChatColor.RED + "You don't have permission to capture that mob!" +
@@ -72,87 +73,106 @@ public class EggHit implements Listener {
                 && event.getEntity() instanceof LivingEntity) {
             Player player = (Player) ((Projectile) event.getDamager()).getShooter();
             LivingEntity mob = (LivingEntity) event.getEntity();
-            if (player.hasPermission("pt.capture") && canPlayerCapture(player, mob)
-                    && plugin.getConfigHandler().canCapture(mob)) {
-                if (serverVersion > 10) {
-                    event.setCancelled(true);
+            if (player.hasPermission("pt.capture")) {
+                if (canPlayerCapture(player, mob)) {
+                    if (plugin.getConfigHandler().canCapture(mob)) {
+                        if (serverVersion > 10) {
+                            event.setCancelled(true);
+                            return;
+                        }
+                        captureMob(event, player, mob);
+                    }
                 } else {
-                    captureMob(event, player, mob);
+                    player.sendMessage(ChatColor.RED + "You don't have permission to capture that mob!" +
+                            "It's either not your pet or a forbidden mob type.");
                 }
+            } else {
+                player.sendMessage(ChatColor.RED + "You don't have permission to use PetTransportation!");
             }
         }
     }
 
     private void captureMob(EntityEvent event, Player player, LivingEntity mob) {
-        if (plugin.getConfigHandler().canCapture(mob)) {
-            // On versions before 1.16 ProjectileHitEvent isn't cancellable
-            if (event instanceof Cancellable) {
-                // Cancel the event, we don't want them to get hurt, do we? (I hope you didn't answer yes D:)
-                ((Cancellable) event).setCancelled(true);
-                // Remove the egg. (Otherwise it will pass right through the mob)
-                if (event instanceof ProjectileHitEvent) event.getEntity().remove();
+        // On versions before 1.16 ProjectileHitEvent isn't cancellable
+        if (event instanceof Cancellable) {
+            // Cancel the event, we don't want them to get hurt, do we? (I hope you didn't answer yes D:)
+            ((Cancellable) event).setCancelled(true);
+            // Remove the egg. (Otherwise it will pass right through the mob)
+            if (event instanceof ProjectileHitEvent) event.getEntity().remove();
+        }
+
+        DataStorage storage = plugin.getStorage();
+        // Generate a random UUID to identify the pet in the config.
+        UUID storageID = UUID.randomUUID();
+
+        String itemName;
+        switch (mob.getType()) {
+            case MUSHROOM_COW:
+                itemName = "MOOSHROOM_SPAWN_EGG";
+                break;
+            case SNOWMAN:
+                itemName = "SNOW_GOLEM_SPAWN_EGG";
+                break;
+            default:
+                itemName = mob.getType() + "_SPAWN_EGG";
+        }
+        Material spawnEgg = Material.getMaterial(itemName);
+        // If this mob type has a spawn egg, create that egg. Otherwise, create a wolf egg.
+        Material wolfSpawnEgg = Material.getMaterial("WOLF_SPAWN_EGG");
+        ItemStack item = new ItemStack((spawnEgg != null) ? spawnEgg
+                : (wolfSpawnEgg != null) ? wolfSpawnEgg : Material.getMaterial("MONSTER_EGG"), 1);
+
+        ItemMeta meta = item.getItemMeta();
+        assert meta != null;
+        if (serverVersion > 10 && serverVersion < 13) {
+            ((SpawnEggMeta) meta).setSpawnedType(mob.getType());
+        }
+        List<String> lore = new ArrayList<>();
+        String animalName;
+        if (mob.getType() == EntityType.WOLF) {
+            animalName = "Dog";
+        } else {
+            animalName = mob.getName();
+        }
+        lore.add(mob.getCustomName() != null ? ChatColor.ITALIC + mob.getCustomName() : ChatColor.ITALIC + animalName);
+        // Add the UUID to the second line as identification when being respawned.
+        lore.add(storageID.toString());
+        // Add lore to metadata.
+        meta.setLore(lore);
+
+        // If this mob type has no corresponding spawn egg, rename the default egg.
+        if (spawnEgg == null) {
+            StringBuilder eggName = new StringBuilder();
+            String[] words = itemName.split("_");
+            for (String s : words) {
+                eggName.append(" ").append(s.charAt(0)).append(s.substring(1).toLowerCase());
             }
+            meta.setDisplayName("\u00A7f"+eggName.substring(1));
+        }
 
-            DataStorage storage = plugin.getStorage();
-            // Generate a random UUID to identify the pet in the config.
-            UUID storageID = UUID.randomUUID();
+        item.setItemMeta(meta);
 
-            String itemName = mob.getType() +"_SPAWN_EGG";
-            Material spawnEgg = Material.getMaterial(itemName);
-            // If this mob type has a spawn egg, create that egg. Otherwise, create a wolf egg.
-            Material wolfSpawnEgg = Material.getMaterial("WOLF_SPAWN_EGG");
-            ItemStack item = new ItemStack((spawnEgg != null) ? spawnEgg
-                    : (wolfSpawnEgg != null) ? wolfSpawnEgg : Material.getMaterial("MONSTER_EGG"), 1);
-
-            List<String> lore = new ArrayList<>();
-            String animalName;
-            if (mob.getType() == EntityType.WOLF) {
-                animalName = "Dog";
-            } else {
-                animalName = mob.getName();
-            }
-            lore.add(mob.getCustomName() != null ? ChatColor.ITALIC + mob.getCustomName() : ChatColor.ITALIC + animalName);
-            // Add the UUID to the second line as identification when being respawned.
-            lore.add(storageID.toString());
-            // Add lore to metadata.
-            ItemMeta meta = item.getItemMeta();
-            assert meta != null;
-            meta.setLore(lore);
-
-            // If this mob type has no corresponding spawn egg, rename the default egg.
-            if (spawnEgg == null) {
-                StringBuilder eggName = new StringBuilder();
-                String[] words = itemName.split("_");
-                for (String s : words) {
-                    eggName.append(" ").append(s.charAt(0)).append(s.substring(1).toLowerCase());
+        // Drop inventory contents of mobs with inventories.
+        if (mob instanceof InventoryHolder) {
+            InventoryHolder invHolder = (InventoryHolder) mob;
+            for (ItemStack inventoryItem : invHolder.getInventory().getContents()) {
+                if (inventoryItem != null) {
+                    mob.getWorld().dropItemNaturally(mob.getLocation(), inventoryItem);
                 }
-                meta.setDisplayName("\u00A7f"+eggName.substring(1));
             }
+        }
 
-            item.setItemMeta(meta);
+        // Drop the spawn egg with the data where the pet is sitting/standing.
+        player.getWorld().dropItemNaturally(mob.getLocation(), item);
 
-            // Drop inventory contents of mobs with inventories.
-            if (mob instanceof InventoryHolder) {
-                InventoryHolder invHolder = (InventoryHolder) mob;
-                for (ItemStack inventoryItem : invHolder.getInventory().getContents()) {
-                    if (inventoryItem != null) {
-                        mob.getWorld().dropItemNaturally(mob.getLocation(), inventoryItem);
-                    }
-                }
-            }
+        // Remove pet from world.
+        mob.remove();
 
-            // Drop the spawn egg with the data where the pet is sitting/standing.
-            player.getWorld().dropItemNaturally(mob.getLocation(), item);
-
-            // Remove pet from world.
-            mob.remove();
-
-            // Attempt to save the pet. This should not fail, as it is only for debug.
-            try {
-                storage.savePet(mob, storageID);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        // Attempt to save the pet. This should not fail, as it is only for debug.
+        try {
+            storage.savePet(mob, storageID);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -169,7 +189,7 @@ public class EggHit implements Listener {
             Tameable t = (Tameable) mob;
             if (player.hasPermission("pt.override")) return true;
             if (t.getOwner() != null) return t.getOwner().getUniqueId().equals(player.getUniqueId());
-        } else if (mob instanceof Fox && player.hasPermission("pt.capture.pets")) {
+        } else if (mob.getType().name().equals("FOX") && player.hasPermission("pt.capture.pets")) {
             Fox f = (Fox) mob;
             if (player.hasPermission("pt.override")) return true;
             if (f.getFirstTrustedPlayer() != null){
