@@ -228,14 +228,16 @@ public class DataStorage {
                 break;
             case ZOMBIE_VILLAGER:
                 ZombieVillager z = (ZombieVillager) mob;
-                mobData.put("isConverting", z.isConverting());
-                if (z.isConverting()) {
-                    if (z.getConversionPlayer() != null)
-                        mobData.put("conversionPlayer", z.getConversionPlayer().getUniqueId().toString());
-                    mobData.put("conversionTime", z.getConversionTime());
+                if (serverVersion > 12) {
+                    mobData.put("isConverting", z.isConverting());
+                    if (z.isConverting()) {
+                        if (serverVersion > 13 && z.getConversionPlayer() != null)
+                            mobData.put("conversionPlayer", z.getConversionPlayer().getUniqueId().toString());
+                        mobData.put("conversionTime", z.getConversionTime());
+                    }
+                    if (serverVersion > 14) mobData.put("type", z.getVillagerType().name());
                 }
                 mobData.put("profession", z.getVillagerProfession().name());
-                mobData.put("type", z.getVillagerType().name());
                 break;
         }
 
@@ -447,13 +449,13 @@ public class DataStorage {
                 break;
             case ZOMBIE_VILLAGER:
                 ZombieVillager z = (ZombieVillager) mob;
-                if ((Boolean) mobData.get("isConverting")) {
-                    if (mobData.get("conversionPlayer") != null) z.setConversionPlayer(server.
+                if (serverVersion > 12 && (Boolean) mobData.get("isConverting")) {
+                    if (serverVersion > 13 && mobData.get("conversionPlayer") != null) z.setConversionPlayer(server.
                             getOfflinePlayer(UUID.fromString((String) mobData.get("conversionPlayer"))));
                     z.setConversionTime((Integer) mobData.get("conversionTime"));
                 }
+                if (serverVersion > 14) z.setVillagerType(Villager.Type.valueOf((String) mobData.get("type")));
                 z.setVillagerProfession(Villager.Profession.valueOf((String) mobData.get("profession")));
-                z.setVillagerType(Villager.Type.valueOf((String) mobData.get("type")));
                 break;
         }
 
