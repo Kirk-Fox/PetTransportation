@@ -55,7 +55,7 @@ public class EggHit implements Listener {
                         if(plugin.getConfigHandler().canCapture(mob)) captureMob(event, player, mob);
                     } else {
                         // If the pet that was supposed to be captured was not owned by the egg thrower (and they don't have bypass perms), tell them off.
-                        player.sendMessage(ChatColor.RED + "You don't have permission to capture that mob!" +
+                        player.sendMessage(ChatColor.RED + "You don't have permission to capture that mob! " +
                                 "It's either not your pet or a forbidden mob type.");
                     }
                 } else {
@@ -83,7 +83,7 @@ public class EggHit implements Listener {
                         captureMob(event, player, mob);
                     }
                 } else {
-                    player.sendMessage(ChatColor.RED + "You don't have permission to capture that mob!" +
+                    player.sendMessage(ChatColor.RED + "You don't have permission to capture that mob! " +
                             "It's either not your pet or a forbidden mob type.");
                 }
             } else {
