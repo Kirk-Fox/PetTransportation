@@ -17,6 +17,7 @@ Simply throw an egg at a tamed pet (or other mob if allowed by the config) to ca
 
 ## Permissions
 - **pt.*** - Gives all plugin permissions
+  - ***default:*** op
 - **pt.capture** - Allows player to use the capturing mechanic
   - ***default:*** true
 - **pt.restore** - Allows player to use a PetTransportation spawn egg
@@ -27,4 +28,3 @@ Simply throw an egg at a tamed pet (or other mob if allowed by the config) to ca
 - **pt.capture.passive** - Allows player to capture passive mobs and unowned pets
 - **pt.capture.monster** - Allows player to capture monsters
 - **pt.override** - Allows player to override pet ownership and capture other players' pets
-  - ***default:*** op
