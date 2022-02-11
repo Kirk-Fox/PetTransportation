@@ -13,8 +13,6 @@ import java.io.IOException;
  */
 public class PetTransportation extends JavaPlugin {
 
-    private int serverVersion;
-
     private DataStorage storage;
     private ConfigHandler configHandler;
 
@@ -22,7 +20,7 @@ public class PetTransportation extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        serverVersion = Integer.parseInt(getServer().getVersion().split("\\.")[1]);
+        int serverVersion = Integer.parseInt(getServer().getVersion().split("\\.")[1]);
 
         storage = new DataStorage(this, serverVersion);
         configHandler = new ConfigHandler(this);

@@ -92,22 +92,12 @@ public class DataStorage {
 
         if (mob instanceof Ageable) mobData.put("age", ((Ageable) mob).getAge());
 
-        if (serverVersion > 10) {
-            if (mob instanceof AbstractHorse) {
-                AbstractHorse h = (AbstractHorse) mob;
-                mobData.put("jumpStrength", h.getJumpStrength());
-                mobData.put("maxHealth", h.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
-                mobData.put("speed", h.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue());
-                if (h instanceof ChestedHorse) mobData.put("isCarryingChest", ((ChestedHorse) h).isCarryingChest());
-            }
-        } else {
-            if (mob instanceof Horse) {
-                Horse h = (Horse) mob;
-                mobData.put("jumpStrength", h.getJumpStrength());
-                mobData.put("maxHealth", h.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
-                mobData.put("speed", h.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue());
-                mobData.put("isCarryingChest", h.isCarryingChest());
-            }
+        if (serverVersion > 10 && mob instanceof AbstractHorse) {
+            AbstractHorse h = (AbstractHorse) mob;
+            mobData.put("jumpStrength", h.getJumpStrength());
+            mobData.put("maxHealth", h.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
+            mobData.put("speed", h.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue());
+            if (h instanceof ChestedHorse) mobData.put("isCarryingChest", ((ChestedHorse) h).isCarryingChest());
         }
 
         if (mob instanceof Slime) mobData.put("size", ((Slime) mob).getSize());
@@ -125,7 +115,13 @@ public class DataStorage {
                 Horse h = (Horse) mob;
                 mobData.put("color", h.getColor().name());
                 mobData.put("style", h.getStyle().name());
-                if (serverVersion < 11) mobData.put("variant", h.getVariant().name());
+                if (serverVersion < 11) {
+                    mobData.put("variant", h.getVariant().name());
+                    mobData.put("jumpStrength", h.getJumpStrength());
+                    mobData.put("maxHealth", h.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
+                    mobData.put("speed", h.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue());
+                    mobData.put("isCarryingChest", h.isCarryingChest());
+                }
                 break;
             case PARROT:
                 mobData.put("isSitting", ((Parrot) mob).isSitting());
@@ -271,6 +267,8 @@ public class DataStorage {
             }
         }
 
+        // Save the armor and held items of the mob.
+
         EntityEquipment eq = mob.getEquipment();
         if (eq != null) {
             mobData.put("equipment.helmet", eq.getHelmet());
@@ -312,22 +310,12 @@ public class DataStorage {
 
         if (mob instanceof Ageable) ((Ageable) mob).setAge((Integer) mobData.get("age"));
 
-        if (serverVersion > 10) {
-            if (mob instanceof AbstractHorse) {
-                AbstractHorse h = (AbstractHorse) mob;
-                h.setJumpStrength((Double) mobData.get("jumpStrength"));
-                h.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue((Double) mobData.get("maxHealth"));
-                h.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue((Double) mobData.get("speed"));
-                if (h instanceof ChestedHorse) ((ChestedHorse) h).setCarryingChest((Boolean) mobData.get("isCarryingChest"));
-            }
-        } else {
-            if (mob instanceof Horse) {
-                Horse h = (Horse) mob;
-                h.setJumpStrength((Double) mobData.get("jumpStrength"));
-                h.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue((Double) mobData.get("maxHealth"));
-                h.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue((Double) mobData.get("speed"));
-                h.setCarryingChest((Boolean) mobData.get("isCarryingChest"));
-            }
+        if (serverVersion > 10 && mob instanceof AbstractHorse) {
+            AbstractHorse h = (AbstractHorse) mob;
+            h.setJumpStrength((Double) mobData.get("jumpStrength"));
+            h.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue((Double) mobData.get("maxHealth"));
+            h.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue((Double) mobData.get("speed"));
+            if (h instanceof ChestedHorse) ((ChestedHorse) h).setCarryingChest((Boolean) mobData.get("isCarryingChest"));
         }
 
         if (mob instanceof Slime) ((Slime) mob).setSize((Integer) mobData.get("size"));
@@ -347,7 +335,13 @@ public class DataStorage {
                 Horse h = (Horse) mob;
                 h.setColor(Horse.Color.valueOf((String) mobData.get("color")));
                 h.setStyle(Horse.Style.valueOf((String) mobData.get("style")));
-                if (serverVersion < 11) h.setVariant(Horse.Variant.valueOf((String) mobData.get("variant")));
+                if (serverVersion < 11) {
+                    h.setVariant(Horse.Variant.valueOf((String) mobData.get("variant")));
+                    h.setJumpStrength((Double) mobData.get("jumpStrength"));
+                    h.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue((Double) mobData.get("maxHealth"));
+                    h.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue((Double) mobData.get("speed"));
+                    h.setCarryingChest((Boolean) mobData.get("isCarryingChest"));
+                }
                 break;
             case PARROT:
                 ((Parrot) mob).setSitting((Boolean) mobData.get("isSitting"));
@@ -534,26 +528,17 @@ public class DataStorage {
         config.set("pets." + uuid, null);
     }
 
-    /**
-     * Saves captured pet's data to YAML config
-     *
-     * @param uuid the UUID associated with the stored pet
-     * @param mobData a map of the mob's data
-     */
+    // Saves captured pet's data to YAML config
     private void set(UUID uuid, Map<String, Object> mobData) {
         mobData.forEach((l, v) -> config.set("pets." + uuid.toString() + "." + l, v));
     }
 
-    /**
-     * Gets captured pet's data from YAML config
-     *
-     * @param uuid the UUID associated with the stored pet
-     * @return a map of the mob's data
-     */
+    // Gets captured pet's data from YAML config
     private Map<String, Object> get(UUID uuid) {
         return config.getConfigurationSection("pets." + uuid.toString()).getValues(true);
     }
 
+    // Gets float value from double in YAML config
     private float getFloat(UUID uuid, String key) {
         return (float) config.getDouble("pets." + uuid.toString() + "." + key);
     }

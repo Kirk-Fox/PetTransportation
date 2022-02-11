@@ -72,12 +72,15 @@ public class EggClick implements Listener {
                 }
 
                 EntityType type = dataStorage.identifyPet(uuid.toString());
-                LivingEntity mob;
-                if (serverVersion > 11) {
-                    mob = (LivingEntity) clickedBlock.getWorld().spawn(spawnLoc, type.getEntityClass(),
+
+                // Use Consumer to ensure all necessary changes are made to the mob before spawning it.
+                // On versions without Consumer, delay editing the mob by two ticks to avoid a bug that doesn't allow
+                // the changing of the mob's equipment on the same tick it's spawned.
+                if (serverVersion > 11 && type.getEntityClass() != null) {
+                    clickedBlock.getWorld().spawn(spawnLoc, type.getEntityClass(),
                             (m) -> dataStorage.restorePet((LivingEntity) m, uuid));
                 } else {
-                    mob = (LivingEntity) clickedBlock.getWorld().spawnEntity(spawnLoc, type);
+                    LivingEntity mob = (LivingEntity) clickedBlock.getWorld().spawnEntity(spawnLoc, type);
                     new BukkitRunnable() {
                         public void run() {
                             dataStorage.restorePet(mob, uuid);

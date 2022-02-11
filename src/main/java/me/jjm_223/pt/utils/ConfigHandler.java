@@ -7,6 +7,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Class for handling the values in the plugin's configuration.
+ */
 public class ConfigHandler {
 
     private final boolean onlyPets;

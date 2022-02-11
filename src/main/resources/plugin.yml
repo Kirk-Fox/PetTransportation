@@ -6,27 +6,31 @@ main: me.jjm_223.pt.PetTransportation
 api-version: 1.13
 permissions:
   pt.*:
-    default: false
+    description: Gives all plugin permissions
+    default: op
     children:
       pt.capture: true
       pt.restore: true
       pt.override: true
       pt.capture.*: true
   pt.capture:
+    description: Allows player to capture mobs in eggs
     default: true
   pt.capture.*:
-    default: false
+    description: Allows player to capture mobs of any type
     children:
       pt.capture.pets: true
       pt.capture.passive: true
       pt.capture.monster: true
   pt.capture.pets:
+    description: Allows player to capture tamed pets or foxes
     default: true
   pt.capture.passive:
-    default: false
+    description: Allows player to capture untamed pets and passive mobs
   pt.capture.monster:
-    default: false
+    description: Allows player to capture monsters
   pt.restore:
+    description: Allows player to use spawn eggs created by the plugin
     default: true
   pt.override:
-    default: op
+    description: Allows player to override pet ownership when capturing
