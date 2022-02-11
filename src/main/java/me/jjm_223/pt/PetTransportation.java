@@ -16,6 +16,9 @@ public class PetTransportation extends JavaPlugin {
     private DataStorage storage;
     private ConfigHandler configHandler;
 
+    private String newVersion = null;
+
+    private static final int RESOURCE_ID = 99647;
     private static final int BSTATS_ID = 14000;
 
     @Override
@@ -29,6 +32,16 @@ public class PetTransportation extends JavaPlugin {
         pm.registerEvents(new EggHit(this, serverVersion), this);
         pm.registerEvents(new EggClick(this, serverVersion), this);
         pm.registerEvents(new ItemDespawn(this), this);
+        pm.registerEvents(new PlayerJoin(this), this);
+
+        new UpdateChecker(this, RESOURCE_ID).getLatestVersion(version -> {
+            if (!getDescription().getVersion().equalsIgnoreCase(version)) {
+                outputLog("There is a new version of PetTransportation available!");
+                outputLog("Go to https://www.spigotmc.org/resources/pettransportation.99647 to download version "
+                        + version);
+                this.newVersion = version;
+            }
+        });
 
         new Metrics(this, BSTATS_ID);
     }
@@ -42,6 +55,10 @@ public class PetTransportation extends JavaPlugin {
         }
     }
 
+    public void outputLog(String msg) {
+        getLogger().info(msg);
+    }
+
     public DataStorage getStorage()
     {
         return this.storage;
@@ -49,5 +66,9 @@ public class PetTransportation extends JavaPlugin {
 
     public ConfigHandler getConfigHandler() {
         return this.configHandler;
+    }
+
+    public String getNewVersion() {
+        return this.newVersion;
     }
 }

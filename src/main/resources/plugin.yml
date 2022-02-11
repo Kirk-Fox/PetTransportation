@@ -13,6 +13,7 @@ permissions:
       pt.restore: true
       pt.override: true
       pt.capture.*: true
+      pt.updatecheck: true
   pt.capture:
     description: Allows player to capture mobs in eggs
     default: true
@@ -34,3 +35,5 @@ permissions:
     default: true
   pt.override:
     description: Allows player to override pet ownership when capturing
+  pt.updatecheck:
+    description: Notifies player of a new update to the plugin
