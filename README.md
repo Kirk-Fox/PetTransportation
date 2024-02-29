@@ -28,3 +28,4 @@ Simply throw an egg at a tamed pet (or other mob if allowed by the config) to ca
 - **pt.capture.passive** - Allows player to capture passive mobs and unowned pets
 - **pt.capture.monster** - Allows player to capture monsters
 - **pt.override** - Allows player to override pet ownership and capture other players' pets
+- **pt.updatecheck** - Notifies the player of a new version of the plugin upon joining
