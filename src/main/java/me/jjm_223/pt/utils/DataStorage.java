@@ -127,6 +127,9 @@ public class DataStorage {
                 mobData.put("isSitting", ((Parrot) mob).isSitting());
                 mobData.put("variant", ((Parrot) mob).getVariant().name());
                 break;
+            case ALLAY:
+                mobData.put("duplicationCooldown", ((Allay) mob).getDuplicationCooldown());
+                break;
             case BEE:
                 Bee b = (Bee) mob;
                 mobData.put("anger", b.getAnger());
@@ -152,6 +155,9 @@ public class DataStorage {
                 }
                 mobData.put("foxType", f.getFoxType().name());
                 mobData.put("isCrouching", f.isCrouching());
+                break;
+            case FROG:
+                mobData.put("variant", ((Frog) mob).getVariant().name());
                 break;
             case GLOW_SQUID:
                 mobData.put("darkTicksRemaining", ((GlowSquid) mob).getDarkTicksRemaining());
@@ -203,6 +209,9 @@ public class DataStorage {
                 break;
             case STRIDER:
                 mobData.put("hasSaddle", ((Strider) mob).hasSaddle());
+                break;
+            case TADPOLE:
+                mobData.put("age", ((Tadpole) mob).getAge());
                 break;
             case VILLAGER:
                 Villager v = (Villager) mob;
@@ -294,7 +303,7 @@ public class DataStorage {
      * @param mob the mob spawned that will have its data set
      * @param uuid the UUID associated with the captured pet
      */
-    public void restorePet(LivingEntity mob, UUID uuid) {
+    public void restorePet(LivingEntity mob, UUID uuid, Player player) {
         Map<String, Object> mobData = get(uuid);
 
         mob.setCustomName((String) mobData.get("name"));
@@ -347,6 +356,9 @@ public class DataStorage {
                 ((Parrot) mob).setSitting((Boolean) mobData.get("isSitting"));
                 ((Parrot) mob).setVariant(Parrot.Variant.valueOf((String) mobData.get("variant")));
                 break;
+            case ALLAY:
+                ((Allay) mob).setDuplicationCooldown((Long) mobData.get("duplicationCooldown"));
+                break;
             case BEE:
                 Bee b = (Bee) mob;
                 b.setAnger((Integer) mobData.get("anger"));
@@ -372,6 +384,9 @@ public class DataStorage {
                 }
                 f.setFoxType(Fox.Type.valueOf((String) mobData.get("foxType")));
                 f.setCrouching((Boolean) mobData.get("isCrouching"));
+                break;
+            case FROG:
+                ((Frog) mob).setVariant(Frog.Variant.valueOf((String) mobData.get("variant")));
                 break;
             case GLOW_SQUID:
                 ((GlowSquid) mob).setDarkTicksRemaining((Integer) mobData.get("darkTicksRemaining"));
@@ -426,6 +441,9 @@ public class DataStorage {
             case STRIDER:
                 ((Strider) mob).setSaddle((Boolean) mobData.get("hasSaddle"));
                 break;
+            case TADPOLE:
+                ((Tadpole) mob).setAge((Integer) mobData.get("age"));
+                break;
             case VILLAGER:
                 Villager v = (Villager) mob;
                 if (serverVersion > 13) {
@@ -435,6 +453,9 @@ public class DataStorage {
                 }
                 v.setProfession(Villager.Profession.valueOf((String) mobData.get("profession")));
                 break;
+            case WARDEN:
+                // The warden is NOT HAPPY about being trapped in an egg.
+                ((Warden) mob).setAnger(player, 150);
             case ZOMBIE:
                 if (serverVersion < 11) {
                     if ((Boolean) mobData.get("isVillager"))

@@ -78,12 +78,12 @@ public class EggClick implements Listener {
                 // the changing of the mob's equipment on the same tick it's spawned.
                 if (serverVersion > 11 && type.getEntityClass() != null) {
                     clickedBlock.getWorld().spawn(spawnLoc, type.getEntityClass(),
-                            (m) -> dataStorage.restorePet((LivingEntity) m, uuid));
+                            (m) -> dataStorage.restorePet((LivingEntity) m, uuid, player));
                 } else {
                     LivingEntity mob = (LivingEntity) clickedBlock.getWorld().spawnEntity(spawnLoc, type);
                     new BukkitRunnable() {
                         public void run() {
-                            dataStorage.restorePet(mob, uuid);
+                            dataStorage.restorePet(mob, uuid, player);
                         }
                     }.runTaskLater(plugin, 2L);
                 }

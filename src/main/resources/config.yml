@@ -12,3 +12,4 @@ use-blacklist-as-whitelist: false
 mob-blacklist:
   - ender_dragon
   - wither
+  - warden
